@@ -1,0 +1,188 @@
+/* Header Container */
+.mainNav {
+  /* background-color: white;*/
+  color: #fff;
+  padding-right: 7rem;
+  /* line-height: .1; */
+  height: 10px;
+  margin-bottom: 2rem;
+}
+
+.header {
+  width: fit-content;
+  display: flex;
+  justify-content: end;
+  gap: 10px;
+  align-items: center;
+  /* padding: 15px 20px; */
+  
+  background-color: black;
+  color: white;
+  margin-left: auto;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #ffffff;
+  margin-right: 5%;
+}
+
+.header_main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  width: 100%;
+}
+
+.header-left {
+  flex: 1;
+  display: flex;
+  justify-content: center; /* Center the logo */
+  align-items: center;
+}
+
+.logo {
+  height: 90px; /* Adjust as needed */
+  cursor: pointer;
+  margin-left: 20rem;
+}
+
+.logo1 {
+  height: 50px; /* Adjust as needed */
+  cursor: pointer;
+}
+
+.header {
+  /* flex: 1; */
+  display: flex;
+  justify-content: flex-end; /* Align header to right */
+  align-items: center;
+  margin-right: 2rem;
+}
+
+/* Center Section - Navigation */
+.nav {
+  display: flex;
+  justify-content: end;
+  gap: 20px;
+  padding: 0 !important;
+  align-items: center;
+}
+
+.dropdown {
+  width: fit-content;
+}
+
+.nav a {
+  text-decoration: none;
+  font-size: 1rem;
+  color: white;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.nav a:hover {
+  color: #00a8ff; /* Blue Hover Effect */
+}
+
+/* More Button */
+.more-button {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: black;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.more-button:hover {
+  color: #00a8ff;
+}
+
+/* Right Section - User Actions */
+.user-actions {
+  display: flex;
+  justify-content: end;
+  padding-right: 3rem;
+  gap: 15px;
+}
+
+/* Subscribe Button */
+.subscribe {
+  background-color: transparent;
+  color: white;
+  font-weight: bold;
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  /* transition: background 0.3s ease; */
+}
+
+.subscribe:hover {
+  background-color: #d1b7ff; /* Darker Purple */
+}
+
+/* Account Button */
+.account {
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding-top: 15px;
+  gap: 5px;
+}
+a {
+  text-decoration: none;
+  color: white;
+}
+
+.account .icon {
+  color: #6a00ff; /* Purple User Icon */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav {
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  .user-actions {
+    margin-top: 10px;
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* .header_main{
+  display: flex;
+  align-items: center;
+  padding-left: 20px;
+  margin-bottom: 15vh;
+} */
+
+.desktopView {
+  display: block !important;
+}
+.mobileView {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .desktopView {
+    display: none !important;
+  }
+  .mobileView {
+    display: block !important;
+  }
+}
