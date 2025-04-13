@@ -16,7 +16,7 @@ const Home = () => {
       };
 
       const response = await fetch(
-        "http://localhost:4000/api/auth/getblogs",
+        "http://82.29.166.100:4000/api/auth/getblogs",
         requestOptions
       );
       const result = await response.json();
@@ -35,14 +35,9 @@ const Home = () => {
     GetBlogs();
   }, []);
 
-  // ✅ Proper Sorting - latest blog first
-  const sortedData = [...data].sort((a, b) => {
-    const dateA = a.createdAt
-      ? new Date(a.createdAt)
-      : new Date(parseInt(a._id.substring(0, 8), 16) * 1000);
-    const dateB = b.createdAt
-      ? new Date(b.createdAt)
-      : new Date(parseInt(b._id.substring(0, 8), 16) * 1000);
+  const sortedUpdatedData = [...data].sort((a, b) => {
+    const dateA = a.updatedAt ? new Date(a.updatedAt) : new Date();
+    const dateB = b.updatedAt ? new Date(b.updatedAt) : new Date();
     return dateB - dateA;
   });
 
@@ -58,7 +53,9 @@ const Home = () => {
               <div className="featured-article">
                 <div className="featured-image-container">
                   <img
-                    src={`http://localhost:4000/${sortedData[0]?.img?.[0] || solotrip}`}
+                    src={`http://82.29.166.100:4000/${
+                      sortedData[0]?.img?.[0] || solotrip
+                    }`}
                     alt="Featured"
                     className="featured-image"
                   />
@@ -72,7 +69,8 @@ const Home = () => {
                     {sortedData[0]?.title || "No Featured Blog Available"}
                   </a>
                   <p className="featured-subtitle">
-                    {sortedData[0]?.travelDescription?.slice(0, 150) || "No description available."}
+                    {sortedData[0]?.travelDescription?.slice(0, 150) ||
+                      "No description available."}
                   </p>
                 </div>
               </div>
@@ -84,12 +82,12 @@ const Home = () => {
             <div className="top-stories">
               <h2 className="top-stories-header">Top Stories</h2>
               <ol className="story-list">
-                {sortedData.slice(0, 5).map((res, index) => (
+                {sortedUpdatedData.slice(0, 5).map((res, index) => (
                   <li
                     onClick={() => navigate(`/blogs/${res?._id}`)}
                     style={{ cursor: "pointer" }}
                     className="story-item d-flex align-items-center mb-3"
-                    key={index + 1}
+                    key={res._id}
                   >
                     <div className="story-number me-3">{index + 1}</div>
 
@@ -98,9 +96,7 @@ const Home = () => {
                       <div className="story-meta">
                         <span className="story-author">{res?.author}</span>
                         <p className="story-time">
-                          <span style={{ color: "#32a868" }}>
-                            Travel Blog
-                          </span>
+                          <span style={{ color: "#32a868" }}>Travel Blog</span>
                           <span
                             style={{
                               textTransform: "capitalize",
@@ -108,8 +104,8 @@ const Home = () => {
                               paddingLeft: "15px",
                             }}
                           >
-                            {res?.createdAt
-                              ? new Date(res.createdAt).toLocaleDateString()
+                            {res?.updatedAt
+                              ? new Date(res.updatedAt).toLocaleDateString()
                               : "Recently"}
                           </span>
                         </p>
@@ -127,7 +123,7 @@ const Home = () => {
                       }}
                     >
                       <img
-                        src={`http://localhost:4000/${res?.img?.[0]}`}
+                        src={`http://82.29.166.100:4000/${res?.img?.[0]}`}
                         alt={res?.title}
                         style={{
                           width: "100%",

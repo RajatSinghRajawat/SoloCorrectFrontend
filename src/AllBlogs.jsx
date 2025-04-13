@@ -47,7 +47,7 @@ const AllBlogs = () => {
     }
     try {
       const response = await fetch(
-        `http://localhost:4000/api/auth/updateBlog/${selectedBlog._id}`,
+        `http://82.29.166.100:4000/api/auth/updateBlog/${selectedBlog._id}`,
         {
           method: "PUT",
           body: formData,
@@ -69,7 +69,7 @@ const AllBlogs = () => {
 
   const BlogsApi = async () => {
     try {
-      const response = await fetch("http://localhost:4000/api/auth/getblogs");
+      const response = await fetch("http://82.29.166.100:4000/api/auth/getblogs");
       const result = await response.json();
       console.log("API Response:", result);
       setBlogs(result?.blogs || []);
@@ -85,7 +85,7 @@ const AllBlogs = () => {
         redirect: "follow",
       };
 
-      fetch(`http://localhost:4000/api/auth/deleteblog/${id}`, requestOptions)
+      fetch(`http://82.29.166.100:4000/api/auth/deleteblog/${id}`, requestOptions)
         .then((response) => response.json())
         .then((result) => {
           if (result.status == 1) {
@@ -137,7 +137,7 @@ const AllBlogs = () => {
                             {/* <td> <div dangerouslySetInnerHTML={{ __html: res?.fulldescription }} /></td> */}
                             <td>
                               <img
-                                src={`http://localhost:4000/${res.img}`}
+                                src={`http://82.29.166.100:4000/${res.img}`}
                                 alt={res.title}
                                 style={{ width: "50px" }}
                               />
