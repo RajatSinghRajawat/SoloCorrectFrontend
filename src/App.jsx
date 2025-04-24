@@ -15,26 +15,26 @@ import Events from "./components/Events";
 import AddEvents from "./components/AddEvents";
 import CityStates from "./components/CityStates";
 
-const myData = createContext()
+const myData = createContext();
 const App = () => {
-  const [state,setState] = useState({city:"",state:""})
+  const [state, setState] = useState({ city: "", state: "" });
 
   return (
-    <myData.Provider  value={[state,setState]}>
+    <myData.Provider value={[state, setState]}>
       <ToastContainer />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />.
           <Route element={<ProtectedRoute />}>
             <Route path="/profile" element={<AccountProfile />} />
-            <Route path="/tech" element={<Tech />} />
             <Route path="/blogs/:id" element={<Blogs />} />
             <Route path="/allblogs" element={<AllBlogs />} />
             <Route path="/add/blogs" element={<AddBlogs />} />
+            <Route path="/add/Events" element={<AddEvents />} />
           </Route>
+          <Route path="/tech" element={<Tech />} />
           <Route path="/events" element={<Events />} />
-          <Route path="/add/Events" element={<AddEvents />} />
-
+  
           <Route path="/register" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
           <Route path="/city" element={<CityStates />} />
@@ -45,4 +45,4 @@ const App = () => {
 };
 
 export default App;
-export {myData}
+export { myData };

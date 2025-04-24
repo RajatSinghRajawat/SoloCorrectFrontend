@@ -68,7 +68,7 @@ const AccountProfile = () => {
     // alert("sdhbsjhvsd")
     try {
       const response = await fetch(
-        `http://82.29.166.100:4000/api/auth/user/${
+        `http://localhost:4000/api/auth/user/${
           JSON.parse(localStorage.getItem("userData"))?.user?._id ||
           JSON.parse(localStorage.getItem("userData"))?._id
         }`
@@ -151,7 +151,7 @@ const AccountProfile = () => {
       formdata.append("hiking", hiking);
 
       const response = await fetch(
-        `http://82.29.166.100:4000/api/auth/update/${
+        `http://localhost:4000/api/auth/update/${
           JSON.parse(localStorage.getItem("userData"))?.user?._id ||
           JSON.parse(localStorage.getItem("userData"))?._id
         }`,

@@ -5,29 +5,41 @@ import "./App.css";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import "react-toastify/dist/ReactToastify.css";
-import Header from "./components/Header";
 import JoditEditor from "jodit-react";
 
 const AllBlogs = () => {
   const [content, setContent] = useState("");
-  const [Blogs, setBlogs] = useState([]);
-  // const [show, setShow] = useState(false);
+  const [blogs, setBlogs] = useState([]);
   const [selectedBlog, setSelectedBlog] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [blogToDelete, setBlogToDelete] = useState(null);
   const [file, setFile] = useState(null);
 
-  const handleShow = (id) => {
-    const blog = Blogs.find((b) => b._id === id);
-    setSelectedBlog(blog);
-    setShowModal(true);
-    setContent(blog.fulldescription);
-  };
   const fileInputRef = useRef(null);
   const editor = useRef(null);
-  const handleClose = () => {
-    setShowModal(false);
+
+  const handleShowEdit = (id) => {
+    const blog = blogs.find((b) => b._id === id);
+    setSelectedBlog(blog);
+    setShowEditModal(true);
+    setContent(blog.fulldescription);
+  };
+
+  const handleCloseEdit = () => {
+    setShowEditModal(false);
     setSelectedBlog(null);
     setFile(null);
+  };
+
+  const handleShowDelete = (id) => {
+    setBlogToDelete(id);
+    setShowDeleteModal(true);
+  };
+
+  const handleCloseDelete = () => {
+    setShowDeleteModal(false);
+    setBlogToDelete(null);
   };
 
   const handleFileChange = (e) => {
@@ -45,9 +57,10 @@ const AllBlogs = () => {
       formData.append("img", file);
       formData.append("img_name", file.name);
     }
+
     try {
       const response = await fetch(
-        `http://82.29.166.100:4000/api/auth/updateBlog/${selectedBlog._id}`,
+        `http://localhost:4000/api/auth/updateBlog/${selectedBlog._id}`,
         {
           method: "PUT",
           body: formData,
@@ -57,53 +70,56 @@ const AllBlogs = () => {
       const result = await response.json();
       if (response.ok) {
         toast.success(result.message || "Blog updated successfully!");
+        await blogsApi();
+        handleCloseEdit();
       } else {
         toast.error(result.message || "Failed to update blog!");
       }
-      BlogsApi();
-      handleClose();
     } catch (error) {
-      console.error(error);
+      console.error("Update Error:", error);
+      toast.error("An error occurred while updating the blog!");
     }
   };
 
-  const BlogsApi = async () => {
+  const blogsApi = async () => {
     try {
-      const response = await fetch("http://82.29.166.100:4000/api/auth/getblogs");
+      const response = await fetch("http://localhost:4000/api/auth/getblogs");
       const result = await response.json();
-      console.log("API Response:", result);
       setBlogs(result?.blogs || []);
     } catch (error) {
       console.error("API Error:", error);
+      toast.error("Failed to fetch blogs!");
     }
   };
 
-  const DeleteApi = (id) => {
+  const handleDelete = async () => {
+    if (!blogToDelete) return;
+
     try {
-      const requestOptions = {
-        method: "DELETE",
-        redirect: "follow",
-      };
+      const response = await fetch(
+        `http://localhost:4000/api/auth/deleteblog/${blogToDelete}`,
+        {
+          method: "DELETE",
+          redirect: "follow",
+        }
+      );
 
-      fetch(`http://82.29.166.100:4000/api/auth/deleteblog/${id}`, requestOptions)
-        .then((response) => response.json())
-        .then((result) => {
-          if (result.status == 1) {
-            toast(result?.message || "Blog deleted successfully!");
-
-            setTimeout(() => {
-              BlogsApi();
-            }, 1000);
-          }
-        })
-        .catch((error) => console.error(error));
+      const result = await response.json();
+      if (result) {
+        toast.success(result?.message || "Blog deleted successfully!");
+        await blogsApi();
+        handleCloseDelete();
+      } else {
+        toast.error(result?.message || "Failed to delete blog!");
+      }
     } catch (error) {
-      console.error("API Error:", error);
+      console.error("Delete Error:", error);
+      toast.error("An error occurred while deleting the blog!");
     }
   };
 
   useEffect(() => {
-    BlogsApi();
+    blogsApi();
   }, []);
 
   return (
@@ -111,15 +127,15 @@ const AllBlogs = () => {
       <ToastContainer />
 
       <div className="mt-4">
-        <h1 className="text-white text-center my-5">All Blogs Here </h1>
+        <h1 className="text-white text-center my-5">All Blogs Here</h1>
         <div className="container-fluid w-100">
           <div className="row">
             <div className="col-lg-11 m-auto">
-              <div className="card  " style={{ backgroundColor: "#000" }}>
+              <div className="card" style={{ backgroundColor: "#000" }}>
                 <div className="card-body px-0">
                   <div style={{ width: "100%", overflowX: "scroll" }}>
-                    <table className="table bg-dark ">
-                      <thead class="custom-table">
+                    <table className="table bg-dark">
+                      <thead className="custom-table">
                         <tr>
                           <th>#</th>
                           <th>Title</th>
@@ -129,34 +145,34 @@ const AllBlogs = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {Blogs?.map((res, index) => (
-                          <tr key={res._id}>
+                        {blogs?.map((blog, index) => (
+                          <tr key={blog._id}>
                             <td>{index + 1}</td>
-                            <td>{res?.title}</td>
-                            <td>{res?.shortdescription}</td>
-                            {/* <td> <div dangerouslySetInnerHTML={{ __html: res?.fulldescription }} /></td> */}
+                            <td>{blog?.title}</td>
+                            <td>{blog?.shortdescription}</td>
                             <td>
                               <img
-                                src={`http://82.29.166.100:4000/${res.img}`}
-                                alt={res.title}
-                                style={{ width: "50px" }}
+                                src={`http://localhost:4000/${
+                                  Array.isArray(blog.img) ? blog.img[0] : blog.img
+                                }`}
+                                alt={blog.title}
+                                style={{ width: "50px", objectFit: "cover" }}
+                                onError={(e) => {
+                                  e.target.src = "/fallback-image.jpg"; // Fallback image
+                                }}
                               />
                             </td>
                             <td>
-                              <div style={{ display: "flex" }}>
+                              <div className="d-flex gap-2">
                                 <button
-                                  className="btn border border-warning mx-3 text-white"
-                                  onClick={() => {
-                                    handleShow(res._id);
-                                  }}
+                                  className="btn border border-warning text-white"
+                                  onClick={() => handleShowEdit(blog._id)}
                                 >
                                   Edit
                                 </button>
                                 <button
                                   className="btn btn-danger"
-                                  onClick={() => {
-                                    DeleteApi(res?._id);
-                                  }}
+                                  onClick={() => handleShowDelete(blog._id)}
                                 >
                                   Delete
                                 </button>
@@ -174,10 +190,14 @@ const AllBlogs = () => {
         </div>
       </div>
 
-      <Modal show={showModal} onHide={handleClose} dialogClassName="modal-xl">
+      {/* Edit Modal */}
+      <Modal show={showEditModal} onHide={handleCloseEdit} dialogClassName="modal-xl">
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Blog</Modal.Title>
+        </Modal.Header>
         <Modal.Body>
-          <div className="form-group">
-            <label>Enter Title</label>
+          <div className="form-group mb-3">
+            <label className="form-label">Title</label>
             <input
               type="text"
               className="form-control"
@@ -189,8 +209,8 @@ const AllBlogs = () => {
             />
           </div>
 
-          <div className="form-group">
-            <label>Enter Short Description</label>
+          <div className="form-group mb-3">
+            <label className="form-label">Short Description</label>
             <input
               type="text"
               className="form-control"
@@ -205,23 +225,54 @@ const AllBlogs = () => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="form-group mb-3">
             <label className="form-label">Content</label>
             <JoditEditor
               ref={editor}
               value={content}
-              // config={config}
-              tabIndex={1} // tabIndex of textarea
-              onBlur={(newContent) => setContent(newContent)} // preferred to use only this option to update the content for performance reasons
+              tabIndex={1}
+              onBlur={(newContent) => setContent(newContent)}
               onChange={(newContent) => setContent(newContent)}
             />
           </div>
-          <div style={{ textAlign: "right" }}></div>
 
-          <button className="btn btn-primary w-100" onClick={handleUpdate}>
-            Save
-          </button>
+          <div className="form-group mb-3">
+            <label className="form-label">Upload Image</label>
+            <input
+              type="file"
+              className="form-control"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept="image/*"
+            />
+          </div>
         </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseEdit}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleUpdate}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={handleCloseDelete} centered>
+        <Modal.Header closeButton className="border-0">
+          <Modal.Title>Confirm Deletion</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p className="mb-0">Are you sure you want to delete this blog? This action cannot be undone.</p>
+        </Modal.Body>
+        <Modal.Footer className="border-0">
+          <Button variant="outline-secondary" onClick={handleCloseDelete}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleDelete}>
+            Delete
+          </Button>
+        </Modal.Footer>
       </Modal>
     </div>
   );

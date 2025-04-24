@@ -22,7 +22,7 @@ const Login = () => {
       return;
     }
     try {
-      const response = await fetch("http://82.29.166.100:4000/api/auth/login", {
+      const response = await fetch("http://localhost:4000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -47,7 +47,7 @@ const Login = () => {
   const ChekExitEmail = async (e, email) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://82.29.166.100:4000/api/auth/checkemail", {
+      const response = await fetch("http://localhost:4000/api/auth/checkemail", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -72,7 +72,7 @@ const Login = () => {
       const formData = new FormData();
       formData.append("email", email);
       formData.append("password", password);
-      const response = await fetch("http://82.29.166.100:4000/api/auth/register", {
+      const response = await fetch("http://localhost:4000/api/auth/register", {
         method: "POST",
         body: formData,
       });
@@ -96,7 +96,7 @@ const Login = () => {
 
   const SendOtp = async () => {
     try {
-      const response = await fetch("http://82.29.166.100:4000/api/auth/sendemail", {
+      const response = await fetch("http://localhost:4000/api/auth/sendemail", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -113,7 +113,7 @@ const Login = () => {
 
   const ValidateOtp = async () => {
     try {
-      const response = await fetch("http://82.29.166.100:4000/api/auth/verifyotp", {
+      const response = await fetch("http://localhost:4000/api/auth/verifyotp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp }),
@@ -161,7 +161,7 @@ const Login = () => {
               <ToastContainer position="top-right" autoClose={3000} />
               <div className="w-100 login-box1">
                 <h4 className="text-dark" style={{ fontWeight: "900", textAlign: "center" }}>
-                  <span>Sign in</span> Or <br /> create an account
+                  <span>Sign in to Solotrip</span> <br /> create an account
                 </h4>
                 <p style={{ textAlign: "center" }}>
                   This email will be used to sign into Vox Media sites. By submitting your email, you agree to our Terms and Privacy Policy to receive email correspondence from us.

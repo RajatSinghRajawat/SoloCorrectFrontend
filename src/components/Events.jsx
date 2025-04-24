@@ -39,7 +39,7 @@ const Listings = () => {
 
     try {
       const response = await fetch(
-        `http://82.29.166.100:4000/api/auth/getEvents?page=${page}&limit=${limit}${stateParam}${cityParam}`
+        `http://localhost:4000/api/auth/getEvents?page=${page}&limit=${limit}${stateParam}${cityParam}`
       );
       const result = await response.json();
 
@@ -233,7 +233,7 @@ const ListingCard = ({ listing }) => {
         {listing.img && listing.img.length > 0 ? (
           <>
             <img
-              src={`http://82.29.166.100:4000/${listing.img[currentImageIndex]}`}
+              src={`http://localhost:4000/${listing.img[currentImageIndex]}`}
               alt="Event"
             />
             {listing.img.length > 1 && (
