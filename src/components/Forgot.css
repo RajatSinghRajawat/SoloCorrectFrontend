@@ -1,0 +1,300 @@
+.forgot-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 1100px;
+    height: 80vh;
+    margin: auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    overflow: hidden;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  
+  /* LEFT SIDE */
+  .forgot-left {
+    flex: 1;
+    background: linear-gradient(135deg, #28a745, #1e7e34);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 60px 30px;
+    text-align: center;
+    animation: forgot-slideInLeft 0.8s ease;
+    position: relative; /* For positioning back button */
+  }
+  
+  .forgot-left h1 {
+    font-size: 42px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    animation: forgot-fadeIn 1s ease;
+  }
+  
+  .forgot-left p {
+    font-size: 18px;
+    max-width: 360px;
+    animation: forgot-fadeIn 1.2s ease;
+  }
+  
+  .forgot-left img {
+    max-width: 100px;
+    max-height: 100px;
+    object-fit: contain;
+    margin-bottom: 20px;
+  }
+  
+  /* RIGHT SIDE */
+  .forgot-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+    padding: 30px;
+    animation: forgot-slideInRight 0.8s ease;
+  }
+  
+  .forgot-form {
+    width: 100%;
+    max-width: 400px;
+    padding: 40px 30px;
+    border-radius: 12px;
+    animation: forgot-fadeInUp 0.8s ease;
+  }
+  
+  .forgot-form h2 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+  }
+  
+  .forgot-form p {
+    margin-bottom: 25px;
+    color: #555;
+    font-size: 15px;
+    text-align: center;
+  }
+  
+  .forgot-form .text-danger {
+    color: #dc3545;
+    font-size: 14px;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  
+  .forgot-form .text-success {
+    color: #28a745;
+    font-size: 14px;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  
+  .forgot-input-group {
+    margin-bottom: 20px;
+  }
+  
+  .forgot-input-group input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+  }
+  
+  .forgot-input-group input:focus {
+    border-color: #28a745;
+    outline: none;
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+  }
+  
+  /* BUTTONS */
+  .forgot-button,
+  .forgot-verify-button,
+  .forgot-resend-button,
+  .forgot-reset-button,
+  .forgot-back-button {
+    padding: 14px;
+    background-color: #28a745;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+    width: 100%; /* Full width for consistency */
+  }
+  
+  .forgot-button:hover,
+  .forgot-verify-button:hover,
+  .forgot-resend-button:hover,
+  .forgot-reset-button:hover,
+  .forgot-back-button:hover {
+    background-color: #218838;
+    transform: translateY(-2px);
+  }
+  
+  .forgot-button:focus,
+  .forgot-verify-button:focus,
+  .forgot-resend-button:focus,
+  .forgot-reset-button:focus,
+  .forgot-back:focus {
+    outline: 2px solid #28a745;
+    outline-offset: 2px;
+  }
+  
+  
+  .forgot-resend-button {
+    background-color: #17a2b8; /* Secondary color for resend */
+    margin-top: 10px;
+  }
+  
+  .forgot-resend-button:hover {
+    background-color: #138496;
+  }
+  
+  .forgot-back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: auto;
+    padding: 8px 12px;
+    min-width: 40px;
+    background-color: #28a745; /* Match primary theme */
+  }
+  
+  .forgot-back-button:hover {
+    background-color: #218838;
+  }
+  
+  .forgot-back-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  /* OTP INPUTS */
+  .forgot-otp-boxes {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .forgot-otp-input {
+    width: 48px;
+    height: 52px;
+    text-align: center;
+    font-size: 22px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+  
+  .forgot-otp-input:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+  }
+  
+  /* ANIMATIONS */
+  @keyframes forgot-slideInLeft {
+    0% {
+      transform: translateX(-50px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes forgot-slideInRight {
+    0% {
+      transform: translateX(50px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes forgot-fadeInUp {
+    0% {
+      transform: translateY(30px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes forgot-fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .forgot-wrapper {
+      flex-direction: column;
+      height: auto;
+      min-height: 100vh;
+    }
+  
+    .forgot-left,
+    .forgot-right {
+      width: 100%;
+      padding: 30px 20px;
+    }
+  
+    .forgot-left h1 {
+      font-size: 32px;
+    }
+  
+    .forgot-left img {
+      max-width: 80px;
+      max-height: 80px;
+    }
+  
+    .forgot-form {
+      padding: 30px 20px;
+    }
+  
+    .forgot-back-button {
+      top: 15px;
+      left: 15px;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .forgot-form {
+      padding: 20px 15px;
+    }
+  
+    .forgot-otp-input {
+      width: 40px;
+      height: 44px;
+      font-size: 18px;
+    }
+  
+    .forgot-button,
+    .forgot-verify-button,
+    .forgot-resend-button,
+    .forgot-reset-button {
+      padding: 12px;
+      font-size: 14px;
+    }
+  }

@@ -161,7 +161,7 @@ const Login = () => {
               <ToastContainer position="top-right" autoClose={3000} />
               <div className="w-100 login-box1">
                 <h4 className="text-dark" style={{ fontWeight: "900", textAlign: "center" }}>
-                  <span>Sign in to Solotrip</span> <br /> create an account
+                  <span>Register in to Solotrip</span> <br /> create an account
                 </h4>
                 <p style={{ textAlign: "center" }}>
                   This email will be used to sign into Vox Media sites. By submitting your email, you agree to our Terms and Privacy Policy to receive email correspondence from us.

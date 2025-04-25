@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../components/images/logo.png";
 import { Navbar, Nav, Container, NavDropdown } from "react-bootstrap";
@@ -7,112 +7,54 @@ import "react-toastify/dist/ReactToastify.css";
 import "./header.css";
 import { FaUser } from "react-icons/fa";
 import { CiMenuFries } from "react-icons/ci";
-import { CgProfile } from "react-icons/cg";
-import { FaBlog } from "react-icons/fa";
 import { IoMdLogOut } from "react-icons/io";
-import Button from "react-bootstrap/Button";
+import { FaSignInAlt } from "react-icons/fa"; // Added for login icon
 import Offcanvas from "react-bootstrap/Offcanvas";
-import { Modal, Form } from "react-bootstrap";
-// import { IoMdLogOut } from "react-icons/io";
-import Select from "react-select";
-import { State, City } from "country-state-city";
-import { myData } from "../App";
+
 const Header = () => {
-  const [myState, setState] = useContext(myData);
-  // console.log(myState,"******************************** State");
-  // console.log(setState,"******************************** setState");
   const navigate = useNavigate();
   const [show, setShow] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState("ACCOUNT");
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
-  const handleLogout = () => {
-    const requestOptions = {
-      method: "POST",
-      redirect: "follow",
-    };
-
-    fetch("http://82.29.166.100:4000/api/auth/logout", requestOptions)
-      .then((response) => response.json())
-      .then((result) => {
-        console.log("Logout API Result:", result);
-        localStorage.removeItem("userData");
-        localStorage.removeItem("token");
-        toast.success("Logout Successful!", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-        setIsLoggedIn(false);
-        setTimeout(() => {
-          navigate("/login");
-        }, 3000);
-      })
-      .catch((error) => {
-        console.error("Logout API Error:", error);
-        toast.error("Logout failed. Please try again.");
-      });
-  };
-
-  // const getDataFromApi = async ()=>{
-  //   const requestOptions = {
-  //     method: "GET",
-  //     redirect: "follow"
-  //   };
-
-  //   const result = await fetch("http://82.29.166.100:4000/api/auth/getblogs?page=1&limit=10&state=Rajasthan&city=jaipur", requestOptions)
-  //   const res = await result.json();
-  //   console.log(res)
-  // }
-
-  const [selectedState, setSelectedState] = useState(null);
-  const [selectedCity, setSelectedCity] = useState(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  // Fetching all states of India dynamically
-  const states = State.getStatesOfCountry("IN").map((state) => ({
-    value: state.isoCode,
-    label: state.name,
-  }));
-
-  // Fetch cities based on selected state
-  const cities = selectedState
-    ? City.getCitiesOfState("IN", selectedState.value).map((city) => ({
-        value: city.name,
-        label: city.name,
-      }))
-    : [];
-
+  // Check if user is logged in and set username
   useEffect(() => {
     const userData = localStorage.getItem("userData");
-    if (userData) {
+    const token = localStorage.getItem("token");
+
+    if (userData && token) {
       setIsLoggedIn(true);
-    }
-  }, []);
-
-  // console.log(selectedState);
-  // console.log(selectedCity)
-  const [username, setUsername] = useState("ACCOUNT");
-  console.log(username, "username");
-
-  useEffect(() => {
-    const userData = localStorage.getItem("userData");
-
-    if (userData) {
       try {
-        const parsedData = JSON.parse(userData); // Convert JSON string to object
-        const userEmail = parsedData?.email; // Extract email from object
-
+        const parsedData = JSON.parse(userData);
+        const userEmail = parsedData?.email;
         if (userEmail) {
-          const namePart = userEmail.split("@")[0]; // Get first part before '@'
-          setUsername(namePart.charAt(0).toUpperCase() + namePart.slice(1)); // Capitalize first letter
+          const namePart = userEmail.split("@")[0];
+          setUsername(namePart.charAt(0).toUpperCase() + namePart.slice(1));
         }
       } catch (error) {
         console.error("Error parsing userData from localStorage:", error);
       }
+    } else {
+      setIsLoggedIn(false);
+      setUsername("ACCOUNT");
     }
   }, []);
+
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem("userData");
+    localStorage.removeItem("token");
+    toast.success("Logout Successful!", {
+      position: "top-right",
+      autoClose: 3000,
+    });
+    setIsLoggedIn(false);
+    setUsername("ACCOUNT");
+    navigate("/login");
+  };
 
   return (
     <>
@@ -123,10 +65,7 @@ const Header = () => {
           <div className="user-actions">
             {isLoggedIn ? (
               <NavLink to="/profile">
-                <button
-                  style={{ textTransform: "capitalize" }}
-                  className="account"
-                >
+                <button style={{ textTransform: "capitalize" }} className="account">
                   <FaUser className="text-light icon" />
                   Hello {username}
                 </button>
@@ -158,10 +97,9 @@ const Header = () => {
                   gap: "20px",
                 }}
               >
-                <NavLink to="/tech">
+                <NavLink to="/blogs">
                   <button
                     className="btn border-0 text-light"
-                   
                     style={{
                       padding: "10px 15px",
                       fontSize: "16px",
@@ -171,81 +109,24 @@ const Header = () => {
                       cursor: "pointer",
                     }}
                   >
-                    Blog  /
+                    Blog /
                   </button>
-                  {/* {dropdownOpen && (
-                    <div
-                      className="dropdown-content"
-                      style={{
-                        position: "absolute",
-                        backgroundColor: "#fff",
-                        minWidth: "250px",
-                        boxShadow: "0px 4px 8px rgba(0,0,0,0.2)",
-                        borderRadius: "8px",
-                        padding: "15px",
-                        zIndex: 1000,
-                        color: "black",
-                      }}
-                    >
-                      <NavLink to="/tech" className="dropdown-item">
-                        Blog Home
-                      </NavLink>
-
-                      <Select
-                        options={states}
-                        value={selectedState}
-                        onChange={(state) => {
-                          setSelectedState(state);
-                          setState({ ...myState, state: state.label });
-                          setSelectedCity(null); 
-                        }}
-                        placeholder="Select a state..."
-                        styles={{
-                          container: (base) => ({ ...base, marginTop: "10px" }),
-                        }}
-                      />
-                      <Select
-                        options={cities}
-                        value={selectedCity}
-                        
-                        onChange={(city) => {
-                          setSelectedCity(city);
-                          setState({ ...myState, city: city.label });
-                        }}
-                        placeholder="Select a city..."
-                        isDisabled={!selectedState} 
-                        styles={{
-                          container: (base) => ({ ...base, marginTop: "10px" }),
-                        }}
-                      />
-
-                    </div>
-                  )} */}
                 </NavLink>
                 <NavLink to="/events">Find Your Travel Buddy /</NavLink>
                 <NavLink to="/events">Events /</NavLink>
                 <NavLink to="/entertainment">Plan Your Trip /</NavLink>
                 <NavDropdown title="More" id="basic-nav-dropdown">
-                  <NavDropdown.Item className="text-dark">
-                    {/* <NavLink to="/add/blogs" style={{ color: "#000" }}>
-                      <FaBlog className="fs-6 me-2" />
-                      Create Blog
-                    </NavLink> */}
-                    {/* <NavDropdown.Divider /> */}
-                    {/* <NavDropdown.Item className="text-dark">
-                      <NavLink to="/add/Events" style={{ color: "#000" }}>
-                        <IoMdLogOut /> Create Events
-                      </NavLink>
-                    </NavDropdown.Item> */}
-                  </NavDropdown.Item>
-                  {/* <NavDropdown.Divider /> */}
-                  <NavDropdown.Item
-                    className="text-danger"
-                    onClick={handleLogout}
-                  >
-                    <IoMdLogOut className="me-2" />
-                    Logout
-                  </NavDropdown.Item>
+                  {isLoggedIn ? (
+                    <NavDropdown.Item className="text-danger" onClick={handleLogout}>
+                      <IoMdLogOut className="me-2" />
+                      Logout
+                    </NavDropdown.Item>
+                  ) : (
+                    <NavDropdown.Item onClick={() => navigate("/login")}>
+                      <FaSignInAlt className="me-2" />
+                      Please Log In
+                    </NavDropdown.Item>
+                  )}
                 </NavDropdown>
               </nav>
             </header>
@@ -269,10 +150,7 @@ const Header = () => {
             />
             {isLoggedIn ? (
               <NavLink to="/profile">
-                <button
-                  style={{ textTransform: "capitalize" }}
-                  className="account"
-                >
+                <button style={{ textTransform: "capitalize" }} className="account">
                   <FaUser className="text-light icon" />
                   Hello {username}
                 </button>
@@ -314,10 +192,9 @@ const Header = () => {
                 className="mt-4 px-0"
                 style={{ textDecoration: "none", listStyle: "none" }}
               >
-                <NavLink to="/tech">
+                <NavLink to="/blogs">
                   <button
                     className="btn border-0 text-light"
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
                     style={{
                       padding: "10px 15px",
                       fontSize: "16px",
@@ -327,9 +204,8 @@ const Header = () => {
                       cursor: "pointer",
                     }}
                   >
-                    Blog  /
+                    Blog /
                   </button>
-                 
                 </NavLink>
                 <hr />
                 <NavLink to="/events" className="text-dark">
@@ -344,23 +220,17 @@ const Header = () => {
                   <li className="text-white ps-4"> Plan Your Trip </li>
                 </NavLink>
                 <hr />
-                <NavDropdown
-                  title="More"
-                  id="basic-nav-dropdown"
-                  className="ps-4"
-                >
-                  {/* <NavDropdown.Item className="text-dark">
-                    <NavLink to="/add/blogs" style={{ color: "#000" }}>
-                      Create Blog
-                    </NavLink>
-                  </NavDropdown.Item> */}
-                  <NavDropdown.Divider />
-                  <NavDropdown.Item
-                    className="text-danger"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </NavDropdown.Item>
+                <NavDropdown title="More" id="basic-nav-dropdown" className="ps-4">
+                  {isLoggedIn ? (
+                    <NavDropdown.Item className="text-danger" onClick={handleLogout}>
+                      Logout
+                    </NavDropdown.Item>
+                  ) : (
+                    <NavDropdown.Item onClick={() => navigate("/login")}>
+                      <FaSignInAlt className="me-2" />
+                      Please Log In
+                    </NavDropdown.Item>
+                  )}
                 </NavDropdown>
                 <hr />
               </ul>

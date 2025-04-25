@@ -14,6 +14,8 @@ import ProtectedRoute from "./components/utils/ProtectedRoute";
 import Events from "./components/Events";
 import AddEvents from "./components/AddEvents";
 import CityStates from "./components/CityStates";
+import ForgotPasswordSendOtp from "./components/ForgotPasswordSendOtp";
+// import ForgotVerifyPassword from "./components/ForgotVerifyPassword";
 
 const myData = createContext();
 const App = () => {
@@ -27,17 +29,22 @@ const App = () => {
           <Route path="/" element={<Home />} />.
           <Route element={<ProtectedRoute />}>
             <Route path="/profile" element={<AccountProfile />} />
-            <Route path="/blogs/:id" element={<Blogs />} />
             <Route path="/allblogs" element={<AllBlogs />} />
             <Route path="/add/blogs" element={<AddBlogs />} />
             <Route path="/add/Events" element={<AddEvents />} />
           </Route>
-          <Route path="/tech" element={<Tech />} />
+          <Route path="/blogs/:id" element={<Blogs />} />
+          <Route path="/blogs" element={<Tech />} />
           <Route path="/events" element={<Events />} />
-  
           <Route path="/register" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
           <Route path="/city" element={<CityStates />} />
+          <Route path="/forgot-password/send-otp" element={<ForgotPasswordSendOtp />} />
+          {/* <Route path="/forgot-password/verify-otp" element={<ForgotVerifyPassword />} />
+          <Route
+            path="/forgot-password/set-password"
+            element={<ForgotPasswordSendOtp />}
+          /> */}
         </Routes>
       </BrowserRouter>
     </myData.Provider>
