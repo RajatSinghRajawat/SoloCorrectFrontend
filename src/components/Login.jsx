@@ -223,6 +223,7 @@ const Login = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                       />
+                     <p  onClick={() => navigate("/forgot-password/send-otp")} style={{ color: "blue", cursor: "pointer", }}>Forgot Password</p>
                     </div>
                   )}
 

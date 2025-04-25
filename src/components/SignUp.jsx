@@ -49,7 +49,7 @@ const SignUp = () => {
       formData.append("password", password);
       formData.append("textarea", textarea);
 
-      const response = await fetch("http://82.29.166.100:4000/api/auth/register", {
+      const response = await fetch("http://localhost:4000/api/auth/register", {
         method: "POST",
         body: formData,
       });

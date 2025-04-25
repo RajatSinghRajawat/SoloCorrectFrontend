@@ -6,6 +6,7 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import "react-toastify/dist/ReactToastify.css";
 import JoditEditor from "jodit-react";
+import Header from "../src/components/Header";
 
 const AllBlogs = () => {
   const [content, setContent] = useState("");
@@ -60,7 +61,7 @@ const AllBlogs = () => {
 
     try {
       const response = await fetch(
-        `http://82.29.166.100:4000/api/auth/updateBlog/${selectedBlog._id}`,
+        `http://localhost:4000/api/auth/updateBlog/${selectedBlog._id}`,
         {
           method: "PUT",
           body: formData,
@@ -83,7 +84,9 @@ const AllBlogs = () => {
 
   const blogsApi = async () => {
     try {
-      const response = await fetch("http://82.29.166.100:4000/api/auth/getblogs");
+      const response = await fetch(
+        "http://localhost:4000/api/auth/getblogs"
+      );
       const result = await response.json();
       setBlogs(result?.blogs || []);
     } catch (error) {
@@ -97,7 +100,7 @@ const AllBlogs = () => {
 
     try {
       const response = await fetch(
-        `http://82.29.166.100:4000/api/auth/deleteblog/${blogToDelete}`,
+        `http://localhost:4000/api/auth/deleteblog/${blogToDelete}`,
         {
           method: "DELETE",
           redirect: "follow",
@@ -125,7 +128,7 @@ const AllBlogs = () => {
   return (
     <div>
       <ToastContainer />
-
+      <Header />
       <div className="mt-4">
         <h1 className="text-white text-center my-5">All Blogs Here</h1>
         <div className="container-fluid w-100">
@@ -152,8 +155,10 @@ const AllBlogs = () => {
                             <td>{blog?.shortdescription}</td>
                             <td>
                               <img
-                                src={`http://82.29.166.100:4000/${
-                                  Array.isArray(blog.img) ? blog.img[0] : blog.img
+                                src={`http://localhost:4000/${
+                                  Array.isArray(blog.img)
+                                    ? blog.img[0]
+                                    : blog.img
                                 }`}
                                 alt={blog.title}
                                 style={{ width: "50px", objectFit: "cover" }}
@@ -191,7 +196,11 @@ const AllBlogs = () => {
       </div>
 
       {/* Edit Modal */}
-      <Modal show={showEditModal} onHide={handleCloseEdit} dialogClassName="modal-xl">
+      <Modal
+        show={showEditModal}
+        onHide={handleCloseEdit}
+        dialogClassName="modal-xl"
+      >
         <Modal.Header closeButton>
           <Modal.Title>Edit Blog</Modal.Title>
         </Modal.Header>
@@ -263,7 +272,10 @@ const AllBlogs = () => {
           <Modal.Title>Confirm Deletion</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p className="mb-0">Are you sure you want to delete this blog? This action cannot be undone.</p>
+          <p className="mb-0">
+            Are you sure you want to delete this blog? This action cannot be
+            undone.
+          </p>
         </Modal.Body>
         <Modal.Footer className="border-0">
           <Button variant="outline-secondary" onClick={handleCloseDelete}>
