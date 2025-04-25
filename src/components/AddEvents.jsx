@@ -72,7 +72,7 @@ const AddEvents = () => {
         }
       });
 
-      const response = await fetch("http://localhost:4000/api/auth/addEvents", {
+      const response = await fetch("http://82.29.166.100:4000/api/auth/addEvents", {
         method: "POST",
         body: formdata,
       });

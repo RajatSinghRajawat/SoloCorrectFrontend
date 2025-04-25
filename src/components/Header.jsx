@@ -34,7 +34,7 @@ const Header = () => {
       redirect: "follow",
     };
 
-    fetch("http://localhost:4000/api/auth/logout", requestOptions)
+    fetch("http://82.29.166.100:4000/api/auth/logout", requestOptions)
       .then((response) => response.json())
       .then((result) => {
         console.log("Logout API Result:", result);
@@ -61,7 +61,7 @@ const Header = () => {
   //     redirect: "follow"
   //   };
 
-  //   const result = await fetch("http://localhost:4000/api/auth/getblogs?page=1&limit=10&state=Rajasthan&city=jaipur", requestOptions)
+  //   const result = await fetch("http://82.29.166.100:4000/api/auth/getblogs?page=1&limit=10&state=Rajasthan&city=jaipur", requestOptions)
   //   const res = await result.json();
   //   console.log(res)
   // }
