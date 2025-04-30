@@ -113,7 +113,7 @@ const Header = () => {
                   </button>
                 </NavLink>
                 <NavLink to="/events">Find Your Travel Buddy /</NavLink>
-                <NavLink to="/events">Events /</NavLink>
+                <NavLink to="">WonderLust /</NavLink>
                 <NavLink to="/entertainment">Plan Your Trip /</NavLink>
                 <NavDropdown title="More" id="basic-nav-dropdown">
                   {isLoggedIn ? (

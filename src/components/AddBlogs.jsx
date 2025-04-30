@@ -57,7 +57,7 @@ const AddBlogs = () => {
       formdata.append("City", selectedCity?.label || "");
 
       setLoading(true);
-      const response = await fetch("http://localhost:4000/api/auth/addblogs", {
+      const response = await fetch("http://82.29.166.100:4000/api/auth/addblogs", {
         method: "POST",
         body: formdata,
       });
@@ -114,16 +114,16 @@ const AddBlogs = () => {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Facebook</label>
+                <label className="form-label">Instagram</label>
                 <input
                   type="text"
                   value={facebook}
                   onChange={(e) => setFacebook(e.target.value)}
                   className="form-input"
-                  placeholder="Enter Facebook Link"
+                  placeholder="Enter Instagram Link"
                 />
               </div>
-              <div className="form-group">
+              {/* <div className="form-group">
                 <label className="form-label">Thread</label>
                 <input
                   type="text"
@@ -132,7 +132,7 @@ const AddBlogs = () => {
                   className="form-input"
                   placeholder="Enter Thread Link"
                 />
-              </div>
+              </div> */}
               <div className="form-group">
                 <label className="form-label">Select State</label>
                 <Select

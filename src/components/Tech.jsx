@@ -18,7 +18,7 @@ const Tech = () => {
   const fetchBlogs = async () => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/auth/getblogs?page=${page}&limit=6&States=${myState.state}&City=${myState.city}`
+        `http://82.29.166.100:4000/api/auth/getblogs?page=${page}&limit=6&States=${myState.state}&City=${myState.city}`
       );
       const result = await response.json();
 
@@ -201,7 +201,7 @@ const Tech = () => {
                 <div className="card blog-card shadow-lg border-0 rounded-4">
                   <div className="image-container position-relative">
                     <img
-                      src={`http://localhost:4000/${
+                      src={`http://82.29.166.100:4000/${
                         res?.img[currentImageIndex[res?._id] || 0]
                       }`}
                       alt={`Image ${currentImageIndex[res?._id] + 1 || 1}`}
@@ -249,14 +249,14 @@ const Tech = () => {
                       </div>
                     </div>
 
-                    <div className="d-flex align-items-center mt-3">
+                    {/* <div className="d-flex align-items-center mt-3">
                       <div>
                         <h6 className="mb-0">{res?.author || "Unknown"}</h6>
                         <small className="text-muted">
                           {res?.date || "Some time ago"}
                         </small>
                       </div>
-                    </div>
+                    </div> */}
 
                     <button
                       className="btn btn-primary mt-3 w-100"

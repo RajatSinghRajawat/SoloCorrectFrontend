@@ -164,7 +164,7 @@ const Login = () => {
                   <span>Register in to Solotrip</span> <br /> create an account
                 </h4>
                 <p style={{ textAlign: "center" }}>
-                  This email will be used to sign into Vox Media sites. By submitting your email, you agree to our Terms and Privacy Policy to receive email correspondence from us.
+                 By submitting your email, you agree to our Terms and Privacy Policy to receive email correspondence from us.
                 </p>
                 <form className="mt-2" autoComplete="off">
                   <div className="mb-2">
