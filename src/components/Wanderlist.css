@@ -1,0 +1,223 @@
+ .wander-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Header Styles */
+  .wander-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .wander-logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #00d4ff;
+  }
+
+  .wander-logo .wander-icon {
+    margin-right: 8px;
+  }
+
+  .wander-add-place-btn {
+    background-color: #6b48ff;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .wander-profile-pic {
+    width: 40px;
+    height: 40px;
+    background-color: #6b48ff;
+    border-radius: 50%;
+  }
+
+  /* Main Content Styles */
+  .wander-main-content {
+    background-color: #2a2a3e;
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+
+  .wander-main-content h1 {
+    font-size: 28px;
+    margin-bottom: 10px;
+  }
+
+  .wander-main-content p {
+    font-size: 16px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .wander-buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  .wander-explore-btn, .wander-my-list-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  .wander-explore-btn {
+    background-color: #6b48ff;
+    color: #fff;
+  }
+
+  .wander-my-list-btn {
+    background-color: transparent;
+    color: #6b48ff;
+    border: 1px solid #6b48ff;
+  }
+
+  /* Filter Section Styles */
+  .wander-filter-section {
+    background-color: #2a2a3e;
+    padding: 20px;
+    border-radius: 10px;
+  }
+
+  .wander-filter-row {
+    display: flex;
+    justify-content: end;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .wander-search-input, .wander-dropdown {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #3a3a4e;
+    color: #fff;
+    font-size: 14px;
+    min-width: 200px;
+  }
+
+  .wander-search-input::placeholder {
+    color: #aaa;
+  }
+
+  .wander-dropdown {
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+
+  .wander-filter-btn {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .wander-sort {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .wander-sort span {
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  .wander-sort-dropdown {
+    background-color: #3a3a4e;
+    color: #fff;
+    border: none;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 14px;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .wander-container {
+      padding: 15px;
+    }
+
+    .wander-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .wander-add-place-btn, .wander-profile-pic {
+      margin-top: 10px;
+    }
+
+    .wander-main-content h1 {
+      font-size: 24px;
+    }
+
+    .wander-main-content p {
+      font-size: 14px;
+    }
+
+    .wander-buttons {
+      flex-direction: column;
+    }
+
+    .wander-explore-btn, .wander-my-list-btn {
+      width: 100%;
+    }
+
+    .wander-filter-row {
+      flex-direction: column;
+    }
+
+    .wander-search-input, .wander-dropdown, .wander-filter-btn {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .wander-main-content h1 {
+      font-size: 20px;
+    }
+
+    .wander-main-content p {
+      font-size: 12px;
+    }
+
+    .wander-explore-btn, .wander-my-list-btn {
+      padding: 8px;
+      font-size: 14px;
+    }
+
+    .wander-search-input, .wander-dropdown, .wander-filter-btn {
+      font-size: 12px;
+      padding: 8px;
+    }
+
+    .wander-sort span {
+      font-size: 14px;
+    }
+
+    .wander-sort-dropdown {
+      font-size: 12px;
+    }
+}

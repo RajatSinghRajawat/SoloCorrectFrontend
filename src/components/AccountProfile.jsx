@@ -43,7 +43,7 @@ const AccountProfile = () => {
         throw new Error("User data not found in localStorage");
       }
       const userId = userData.user?._id || userData._id;
-      const response = await fetch(`http://82.29.166.100:4000/api/auth/user/${userId}`);
+      const response = await fetch(`http://localhost:4000/api/auth/user/${userId}`);
       const result = await response.json();
       if (result.user) {
         setFormData({
@@ -114,7 +114,7 @@ const AccountProfile = () => {
       }
       const userId = userData.user?._id || userData._id;
 
-      const response = await fetch(`http://82.29.166.100:4000/api/auth/update/${userId}`, {
+      const response = await fetch(`http://localhost:4000/api/auth/update/${userId}`, {
         method: "PUT",
         body: formdata,
       });

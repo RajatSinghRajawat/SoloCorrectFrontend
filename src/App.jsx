@@ -15,6 +15,7 @@ import Events from "./components/Events";
 import AddEvents from "./components/AddEvents";
 import CityStates from "./components/CityStates";
 import ForgotPasswordSendOtp from "./components/ForgotPasswordSendOtp";
+import Wonderlust from "./components/Wonderlust";
 // import ForgotVerifyPassword from "./components/ForgotVerifyPassword";
 
 const myData = createContext();
@@ -35,6 +36,7 @@ const App = () => {
           </Route>
           <Route path="/blogs/:id" element={<Blogs />} />
           <Route path="/blogs" element={<Tech />} />
+          <Route path="/Wanderlist" element={<Wonderlust />} />
           <Route path="/events" element={<Events />} />
           <Route path="/register" element={<SignUp />} />
           <Route path="/login" element={<Login />} />

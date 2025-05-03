@@ -18,7 +18,7 @@ const Blogs = () => {
   const GetSoloblog = async () => {
     try {
       const response = await fetch(
-        `http://82.29.166.100:4000/api/auth/getblog/${encodeURIComponent(id)}`
+        `http://localhost:4000/api/auth/getblog/${encodeURIComponent(id)}`
       );
       const result = await response.json();
       console.log("API Response:", result);
@@ -46,7 +46,7 @@ const Blogs = () => {
       };
 
       const response = await fetch(
-        "http://82.29.166.100:4000/api/auth/getblogs",
+        "http://localhost:4000/api/auth/getblogs",
         requestOptions
       );
       const result = await response.json();
@@ -75,7 +75,7 @@ const Blogs = () => {
             <>
               <div className="large-image">
                 <img
-                  src={`http://82.29.166.100:4000/${data.img[0]}`}
+                  src={`http://localhost:4000/${data.img[0]}`}
                   className="blog-image"
                   alt="Main Blog Image"
                 />
@@ -84,7 +84,7 @@ const Blogs = () => {
                 {data.img.slice(1, 5).map((image, index) => (
                   <div key={index} className="small-image">
                     <img
-                      src={`http://82.29.166.100:4000/${image}`}
+                      src={`http://localhost:4000/${image}`}
                       className="blog-image"
                       alt={`Thumbnail ${index + 1}`}
                     />
@@ -364,7 +364,7 @@ const Blogs = () => {
                       <div className="story-thumbnail">
                         {/* <img src={res.img} alt={res?._id} /> */}
                         <img
-                          src={`http://82.29.166.100:4000/${res?.img?.[0]}`} // First image from array
+                          src={`http://localhost:4000/${res?.img?.[0]}`} // First image from array
                           alt={res?.title}
                           style={{
                             width: "100%",

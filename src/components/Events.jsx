@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { FaRegHeart, FaCalendarAlt } from "react-icons/fa";
-import "./Listings.css";
-import Header from "./Header";
 import Select from "react-select";
 import { State, City } from "country-state-city";
+import Header from "./Header";
+import "./Listings.css";
 
 const Listings = () => {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [joining, setJoining] = useState(false); // New: For Join button loading state
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 9;
@@ -29,10 +30,6 @@ const Listings = () => {
       }))
     : [];
 
-  useEffect(() => {
-    fetchEvents();
-  }, [page, selectedState, selectedCity]);
-
   const fetchEvents = async () => {
     setLoading(true);
     const stateParam = selectedState ? `&States=${selectedState.label}` : "";
@@ -40,20 +37,63 @@ const Listings = () => {
 
     try {
       const response = await fetch(
-        `http://82.29.166.100:4000/api/auth/getEvents?page=${page}&limit=${limit}${stateParam}${cityParam}`
+        `http://localhost:4000/api/auth/getEvents?page=${page}&limit=${limit}${stateParam}${cityParam}`
       );
       const result = await response.json();
-      console.log(result)
       if (Array.isArray(result.travel)) {
         setListings(result.travel);
+        console.log(listings)
         setTotalPages(result.pagination?.totalPages || 1);
       } else {
         setListings([]);
       }
     } catch (error) {
       console.error("Error fetching events:", error);
+      alert("Failed to load events. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const sendmessagetocreator = async (eventId, userId) => {
+    console.log(eventId,"***************** eventId")
+    console.log(userId,"***************** userId")
+    setJoining(true);
+    try {
+      const myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+
+      const raw = JSON.stringify({
+        eventId,
+        userId,
+      });
+
+      const requestOptions = {
+        method: "POST",
+        headers: myHeaders,
+        body: raw,
+        redirect: "follow",
+      };
+
+      const response = await fetch(
+        "http://localhost:4000/api/auth/sendUserDetailsToEventCreator",
+        requestOptions
+      );
+      const result = await response.json();
+      if (response.ok) {
+        alert("Successfully joined the event! Creator has been notified.");
+        setSelectedListing(null); // Close modal on success
+        document.getElementById("eventModal")?.classList?.remove("show");
+        document.body?.classList.remove("modal-open");
+        document.querySelector(".modal-backdrop")?.remove();
+      } else {
+        throw new Error(result.message || "Failed to join event");
+      }
+    } catch (error) {
+      console.error("Error sending message to creator:", error);
+      alert("Failed to join the event. Please try again.");
+    } finally {
+      setJoining(false);
     }
   };
 
@@ -64,6 +104,10 @@ const Listings = () => {
   const handleNext = () => {
     if (page < totalPages) setPage(page + 1);
   };
+
+  useEffect(() => {
+    fetchEvents();
+  }, [page, selectedState, selectedCity]);
 
   return (
     <>
@@ -126,7 +170,7 @@ const Listings = () => {
             />
 
             <Select
-              className="mt-3 city-select text-black"
+              className="mt-3 city-select"
               options={cities}
               value={selectedCity}
               onChange={(city) => {
@@ -186,15 +230,26 @@ const Listings = () => {
 
         <div className="listings-container">
           {loading ? (
-            <p>Loading events...</p>
+            <div className="text-center">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <p>Loading events...</p>
+            </div>
           ) : listings.length > 0 ? (
-            listings.map((listing, index) => (
-              <ListingCard
-                key={index}
-                listing={listing}
-                setSelectedListing={setSelectedListing}
-              />
-            ))
+            listings.map((listing, index) =>{
+              // console.log(listing,"***** listing")
+              return  (
+                <ListingCard
+                  key={index}
+                  myId={listing._id}
+                  listing={listing}
+                  setSelectedListing={setSelectedListing}
+                  sendmessagetocreator={sendmessagetocreator}
+                  joining={joining}
+                />
+              )
+            })
           ) : (
             <p>No events found.</p>
           )}
@@ -212,7 +267,6 @@ const Listings = () => {
           </button>
         </div>
 
-        {/* Modal */}
         {selectedListing && (
           <div
             className="modal fade"
@@ -251,7 +305,7 @@ const Listings = () => {
                             key={index}
                           >
                             <img
-                              src={`http://82.29.166.100:4000/${img}`}
+                              src={`http://localhost:4000/${img}`}
                               className="d-block w-100"
                               alt={`Event ${index}`}
                               style={{ height: "300px", objectFit: "cover" }}
@@ -304,7 +358,7 @@ const Listings = () => {
                     <strong>Location:</strong> {selectedListing.City},{" "}
                     {selectedListing.States}, India
                   </p>
-                  <p className="">
+                  <p>
                     <strong>Description:</strong>{" "}
                     {selectedListing.travelDescription}
                   </p>
@@ -320,7 +374,7 @@ const Listings = () => {
                     {selectedListing.travelBuddyGender}
                   </p>
                   <p>
-                    <strong>Travel Buddy Interst:</strong>{" "}
+                    <strong>Travel Buddy Interest:</strong>{" "}
                     {selectedListing.interests}
                   </p>
                   <p>
@@ -337,8 +391,32 @@ const Listings = () => {
                   >
                     Close
                   </button>
-                  <button type="button" className="btn btn-primary">
-                    Join Event
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => {
+                      const userId = localStorage.getItem("userData");
+                      console.log(userId._id,"***************** userId")
+                      // if (!userId._id) {
+                      //   alert("Please log in to join the event.");
+                      //   return;
+                      // }
+                      sendmessagetocreator(selectedListing._id, userId._id);
+                    }}
+                    disabled={joining}
+                  >
+                    {joining ? (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                        Joining...
+                      </>
+                    ) : (
+                      "Join Event"
+                    )}
                   </button>
                 </div>
               </div>
@@ -350,34 +428,51 @@ const Listings = () => {
   );
 };
 
-const ListingCard = ({ listing, setSelectedListing }) => {
+const ListingCard = ({myId, listing, setSelectedListing, sendmessagetocreator, joining }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  console.log(myId,"********** myId")
 
-  const nextImage = () => {
+  const nextImage = (e) => {
+    e.stopPropagation();
     setCurrentImageIndex((prevIndex) =>
       prevIndex === listing.img.length - 1 ? 0 : prevIndex + 1
     );
   };
 
-  const prevImage = () => {
+  const prevImage = (e) => {
+    e.stopPropagation();
     setCurrentImageIndex((prevIndex) =>
       prevIndex === 0 ? listing.img.length - 1 : prevIndex - 1
     );
   };
 
+  const handleCityClick = (e) => {
+    e.stopPropagation();
+    setSelectedListing(listing);
+    const modal = new window.bootstrap.Modal(
+      document.getElementById("eventModal")
+    );
+    modal.show();
+  };
+
+  const handleJoin = () => {
+    const userId = JSON.parse(localStorage.getItem("userData"));
+    console.log(userId,"******* myuserId");
+    console.log(myId,"******************** myId");
+    // if (!userId._id) {
+    //   alert("Please log in to join the event.");
+    //   return;
+    // }
+    sendmessagetocreator(myId, userId._id);
+  };
+
   return (
-    <div
-      className="event-card"
-      data-bs-toggle="modal"
-      data-bs-target="#eventModal"
-      onClick={() => setSelectedListing(listing)}
-      style={{ cursor: "pointer" }}
-    >
+    <div className="event-card" style={{ cursor: "default" }}>
       <div className="image-container">
         {listing.img && listing.img.length > 0 ? (
           <>
             <img
-              src={`http://82.29.166.100:4000/${listing.img[currentImageIndex]}`}
+              src={`http://localhost:4000/${listing.img[currentImageIndex]}`}
               alt="Event"
             />
             {listing.img.length > 1 && (
@@ -401,7 +496,14 @@ const ListingCard = ({ listing, setSelectedListing }) => {
         {new Date(listing.endDate).toLocaleDateString()}
       </div>
 
-      <h3>{listing.City}</h3>
+      <h3
+        style={{ cursor: "pointer" }}
+        onClick={handleCityClick}
+        data-bs-toggle="modal"
+        data-bs-target="#eventModal"
+      >
+        {listing.City}
+      </h3>
 
       <div className="event-location">
         <span className="state-name">🏙️ {listing.States}</span> |{" "}
@@ -409,22 +511,40 @@ const ListingCard = ({ listing, setSelectedListing }) => {
       </div>
 
       <p
-  className="event-description text-truncate"
-  style={{
-    width: '100%',
-    maxWidth: '28rem',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  }}
->
-  {listing.travelDescription}
-</p>
+        className="event-description text-truncate"
+        style={{
+          width: "100%",
+          maxWidth: "28rem",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {listing.travelDescription}
+      </p>
 
       <div className="event-footer">
         <div className="event-host">By {listing.travelAuthor || "Unknown"}</div>
         <div className="event-actions">
-          <button className="join-btn">Join</button>
+          <button
+            className="join-btn"
+            onClick={handleJoin}
+            disabled={joining}
+          >
+            {/* {joining ? (
+              <>
+                <span
+                  className="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+                Joining...
+              </>
+            ) : (
+              "Join"
+            )} */}
+            join
+          </button>
         </div>
       </div>
     </div>

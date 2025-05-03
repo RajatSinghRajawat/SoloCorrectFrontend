@@ -27,7 +27,7 @@ const ForgotPasswordSendOtp = () => {
 
   const checkEmailExists = async (email) => {
     try {
-      const res = await fetch("http://82.29.166.100:4000/api/auth/checkemail", {
+      const res = await fetch("http://localhost:4000/api/auth/checkemail", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -45,7 +45,7 @@ const ForgotPasswordSendOtp = () => {
 
   const sendOtp = async () => {
     try {
-      const res = await fetch("http://82.29.166.100:4000/api/auth/sendemail", {
+      const res = await fetch("http://localhost:4000/api/auth/sendemail", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -122,7 +122,7 @@ const ForgotPasswordSendOtp = () => {
 
     setLoading(true);
     try {
-      const res = await fetch("http://82.29.166.100:4000/api/auth/verifyotp", {
+      const res = await fetch("http://localhost:4000/api/auth/verifyotp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp: fullOtp }),
@@ -162,7 +162,7 @@ const ForgotPasswordSendOtp = () => {
 
     setLoading(true);
     try {
-      const res = await fetch("http://82.29.166.100:4000/api/auth/forgotpassword", {
+      const res = await fetch("http://localhost:4000/api/auth/forgotpassword", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
