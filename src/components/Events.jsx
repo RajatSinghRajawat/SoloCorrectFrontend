@@ -37,12 +37,12 @@ const Listings = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/api/auth/getEvents?page=${page}&limit=${limit}${stateParam}${cityParam}`
+        `http://82.29.166.100:4000/api/auth/getEvents?page=${page}&limit=${limit}${stateParam}${cityParam}`
       );
       const result = await response.json();
       if (Array.isArray(result.travel)) {
         setListings(result.travel);
-        console.log(listings)
+        console.log(listings);
         setTotalPages(result.pagination?.totalPages || 1);
       } else {
         setListings([]);
@@ -56,8 +56,8 @@ const Listings = () => {
   };
 
   const sendmessagetocreator = async (eventId, userId) => {
-    console.log(eventId,"***************** eventId")
-    console.log(userId,"***************** userId")
+    console.log(eventId, "***************** eventId");
+    console.log(userId, "***************** userId");
     setJoining(true);
     try {
       const myHeaders = new Headers();
@@ -76,7 +76,7 @@ const Listings = () => {
       };
 
       const response = await fetch(
-        "http://localhost:4000/api/auth/sendUserDetailsToEventCreator",
+        "http://82.29.166.100:4000/api/auth/sendUserDetailsToEventCreator",
         requestOptions
       );
       const result = await response.json();
@@ -108,6 +108,7 @@ const Listings = () => {
   useEffect(() => {
     fetchEvents();
   }, [page, selectedState, selectedCity]);
+  
 
   return (
     <>
@@ -237,9 +238,9 @@ const Listings = () => {
               <p>Loading events...</p>
             </div>
           ) : listings.length > 0 ? (
-            listings.map((listing, index) =>{
+            listings.map((listing, index) => {
               // console.log(listing,"***** listing")
-              return  (
+              return (
                 <ListingCard
                   key={index}
                   myId={listing._id}
@@ -248,7 +249,7 @@ const Listings = () => {
                   sendmessagetocreator={sendmessagetocreator}
                   joining={joining}
                 />
-              )
+              );
             })
           ) : (
             <p>No events found.</p>
@@ -305,7 +306,7 @@ const Listings = () => {
                             key={index}
                           >
                             <img
-                              src={`http://localhost:4000/${img}`}
+                              src={`http://82.29.166.100:4000/${img}`}
                               className="d-block w-100"
                               alt={`Event ${index}`}
                               style={{ height: "300px", objectFit: "cover" }}
@@ -394,29 +395,19 @@ const Listings = () => {
                   <button
                     type="button"
                     className="btn btn-primary"
-                    onClick={() => {
-                      const userId = localStorage.getItem("userData");
-                      console.log(userId._id,"***************** userId")
-                      // if (!userId._id) {
-                      //   alert("Please log in to join the event.");
-                      //   return;
-                      // }
-                      sendmessagetocreator(selectedListing._id, userId._id);
-                    }}
+                    // onClick={() => {
+                    //   const userId = localStorage.getItem("userData");
+                    //   console.log(userId._id, "***************** userId");
+                    //   // if (!userId._id) {
+                    //   //   alert("Please log in to join the event.");
+                    //   //   return;
+                    //   // }
+                    //   sendmessagetocreator(selectedListing._id, userId._id);
+                    // }}
+                    // onClick={handleJoin}
                     disabled={joining}
                   >
-                    {joining ? (
-                      <>
-                        <span
-                          className="spinner-border spinner-border-sm me-2"
-                          role="status"
-                          aria-hidden="true"
-                        ></span>
-                        Joining...
-                      </>
-                    ) : (
-                      "Join Event"
-                    )}
+                  Join
                   </button>
                 </div>
               </div>
@@ -428,9 +419,15 @@ const Listings = () => {
   );
 };
 
-const ListingCard = ({myId, listing, setSelectedListing, sendmessagetocreator, joining }) => {
+const ListingCard = ({
+  myId,
+  listing,
+  setSelectedListing,
+  sendmessagetocreator,
+  joining,
+}) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  console.log(myId,"********** myId")
+  console.log(myId, "********** myId");
 
   const nextImage = (e) => {
     e.stopPropagation();
@@ -446,8 +443,7 @@ const ListingCard = ({myId, listing, setSelectedListing, sendmessagetocreator, j
     );
   };
 
-  const handleCityClick = (e) => {
-    e.stopPropagation();
+  const handleCityClick = () => {
     setSelectedListing(listing);
     const modal = new window.bootstrap.Modal(
       document.getElementById("eventModal")
@@ -457,8 +453,8 @@ const ListingCard = ({myId, listing, setSelectedListing, sendmessagetocreator, j
 
   const handleJoin = () => {
     const userId = JSON.parse(localStorage.getItem("userData"));
-    console.log(userId,"******* myuserId");
-    console.log(myId,"******************** myId");
+    console.log(userId, "******* myuserId");
+    console.log(myId, "******************** myId");
     // if (!userId._id) {
     //   alert("Please log in to join the event.");
     //   return;
@@ -472,7 +468,7 @@ const ListingCard = ({myId, listing, setSelectedListing, sendmessagetocreator, j
         {listing.img && listing.img.length > 0 ? (
           <>
             <img
-              src={`http://localhost:4000/${listing.img[currentImageIndex]}`}
+              src={`http://82.29.166.100:4000/${listing.img[currentImageIndex]}`}
               alt="Event"
             />
             {listing.img.length > 1 && (
@@ -496,12 +492,7 @@ const ListingCard = ({myId, listing, setSelectedListing, sendmessagetocreator, j
         {new Date(listing.endDate).toLocaleDateString()}
       </div>
 
-      <h3
-        style={{ cursor: "pointer" }}
-        onClick={handleCityClick}
-        data-bs-toggle="modal"
-        data-bs-target="#eventModal"
-      >
+      <h3 style={{ cursor: "pointer" }} onClick={handleCityClick}>
         {listing.City}
       </h3>
 
@@ -526,11 +517,7 @@ const ListingCard = ({myId, listing, setSelectedListing, sendmessagetocreator, j
       <div className="event-footer">
         <div className="event-host">By {listing.travelAuthor || "Unknown"}</div>
         <div className="event-actions">
-          <button
-            className="join-btn"
-            onClick={handleJoin}
-            disabled={joining}
-          >
+          <button className="join-btn" onClick={handleJoin} disabled={joining}>
             {/* {joining ? (
               <>
                 <span

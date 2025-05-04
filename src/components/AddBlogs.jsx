@@ -57,10 +57,13 @@ const AddBlogs = () => {
       formdata.append("City", selectedCity?.label || "");
 
       setLoading(true);
-      const response = await fetch("http://localhost:4000/api/auth/addblogs", {
-        method: "POST",
-        body: formdata,
-      });
+      const response = await fetch(
+        "http://82.29.166.100:4000/api/auth/addblogs",
+        {
+          method: "POST",
+          body: formdata,
+        }
+      );
 
       const result = await response.json();
       setLoading(false);
@@ -97,7 +100,27 @@ const AddBlogs = () => {
         <div className="row">
           <div className="col-lg-10 m-auto">
             <div className="blog-form-card fade-in">
-              <div className="mb-4 d-flex justify-content-between">
+              <button
+                className="submit-button"
+                onClick={() => navigate(-1)}
+                style={{
+                  position: "absolute",
+                  top: "2px",
+                  left: "150px",
+                  zIndex: 10,
+                  padding: "8px 16px",
+                  fontWeight: "bold",
+                  backgroundColor: "transparent",
+                  color: "#000",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                ← Back
+              </button>
+
+              <div className="mb-4 mt-5 d-flex justify-content-between">
                 <h1>Create New Blog</h1>
                 <NavLink to="/allblogs">
                   <button className="submit-button">All Blogs</button>
@@ -207,7 +230,24 @@ const AddBlogs = () => {
                   onBlur={setContent}
                 />
               </div>
-              <div style={{ textAlign: "right" }}>
+              {/* <div style={{ textAlign: "right" }}>
+                <button
+                  type="submit"
+                  className="submit-button"
+                  onClick={CreateApi}
+                  disabled={loading}
+                >
+                  {loading ? "Publishing..." : "Publish Blog"}
+                </button>
+              </div> */}
+              <div className="d-flex justify-content-end gap-3 mt-4">
+                <button
+                  className="submit-button"
+                  style={{ backgroundColor: "#6c757d" }}
+                  onClick={() => navigate(-1)}
+                >
+                  Close
+                </button>
                 <button
                   type="submit"
                   className="submit-button"

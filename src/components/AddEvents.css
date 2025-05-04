@@ -1,3 +1,11 @@
+/* Existing styles */
+.submit-button {
+  background-color: #ff6f00 !important; /* Updated to match the submit button color */
+  color: #fff;
+  font-weight: bold;
+  padding: 10px;
+}
+
 .event-container {
   background-color: #1c1c1c;
   color: #fff;
@@ -37,4 +45,37 @@
 
 .submit-button:hover {
   background-color: #ff8f00;
+}
+
+/* Styles for select components */
+.custom-input .MuiSelect-select {
+  color: #fff !important; /* Text color for the selected value */
+}
+
+.custom-input .MuiInputBase-root {
+  color: #fff !important; /* Ensure the input base text is white */
+}
+
+.custom-input .MuiSvgIcon-root {
+  color: #fff !important; /* Dropdown arrow icon color */
+}
+
+/* Remove the border for TextField inputs */
+.custom-input .MuiOutlinedInput-notchedOutline {
+  border: none !important; /* Remove the border entirely */
+}
+
+/* Style for dropdown menu items */
+.MuiMenuItem-root {
+  color: #fff !important; /* Text color for dropdown options */
+  background-color: #2c2c2c !important; /* Background for dropdown options */
+}
+
+.MuiMenuItem-root:hover {
+  background-color: #3c3c3c !important; /* Hover background for dropdown options */
+}
+
+/* Style for the dropdown menu paper */
+.MuiMenu-paper {
+  background-color: #2c2c2c !important; /* Background for the dropdown menu */
 }

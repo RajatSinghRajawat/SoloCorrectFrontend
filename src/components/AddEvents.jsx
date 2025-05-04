@@ -126,10 +126,13 @@ const AddEvents = () => {
         }
       });
 
-      const response = await fetch("http://localhost:4000/api/auth/addEvents", {
-        method: "POST",
-        body: formdata,
-      });
+      const response = await fetch(
+        "http://82.29.166.100:4000/api/auth/addEvents",
+        {
+          method: "POST",
+          body: formdata,
+        }
+      );
 
       const result = await response.json();
 
@@ -170,6 +173,25 @@ const AddEvents = () => {
 
   return (
     <Container className="event-container">
+      <button
+        className=""
+        onClick={() => navigate(-1)}
+        style={{
+          position: "absolute",
+          top: "40px",
+          left: "180px",
+          zIndex: 10,
+          padding: "8px 16px",
+          fontWeight: "bold",
+          backgroundColor: "transparent",
+          color: "#ffff",
+          border: "none",
+          borderRadius: "4px",
+          cursor: "pointer",
+        }}
+      >
+        ← Back
+      </button>
       <Typography variant="h4" align="center" className="event-title">
         Add New Event
       </Typography>
@@ -325,25 +347,35 @@ const AddEvents = () => {
           />
         </Grid>
 
-        {/* Submit Button */}
-        <Grid item xs={12}>
-          <Button
-            variant="contained"
-            fullWidth
-            className="submit-button"
-            onClick={addEvent}
-            disabled={isLoading}
-            aria-label="Submit Event"
-          >
-            {isLoading ? (
-              <>
-                <CircularProgress size={24} style={{ marginRight: 8 }} />
-                Submitting...
-              </>
-            ) : (
-              "Submit Event"
-            )}
-          </Button>
+        <Grid container justifyContent="flex-end" spacing={2} sx={{ mt: 4 }}>
+          <Grid item>
+            <Button
+              variant="contained"
+              className="submit-button"
+              style={{ backgroundColor: "#6c757d" }}
+              onClick={() => navigate(-1)}
+            >
+              Close
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              className="submit-button"
+              onClick={addEvent}
+              disabled={isLoading}
+              aria-label="Submit Event"
+            >
+              {isLoading ? (
+                <>
+                  <CircularProgress size={24} style={{ marginRight: 8 }} />
+                  Submitting...
+                </>
+              ) : (
+                "Submit Event"
+              )}
+            </Button>
+          </Grid>
         </Grid>
       </Grid>
     </Container>
