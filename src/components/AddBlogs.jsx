@@ -12,7 +12,7 @@ const AddBlogs = () => {
   const [shortDescription, setShortDescription] = useState("");
   const [content, setContent] = useState("");
   const [facebook, setFacebook] = useState("");
-  const [thread, setThread] = useState("");
+
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedState, setSelectedState] = useState(null);
@@ -52,7 +52,7 @@ const AddBlogs = () => {
       formdata.append("shortdescription", shortDescription);
       formdata.append("fulldescription", content);
       formdata.append("facebook", facebook);
-      formdata.append("threads", thread);
+  
       formdata.append("States", selectedState?.label || "");
       formdata.append("City", selectedCity?.label || "");
 
@@ -74,7 +74,7 @@ const AddBlogs = () => {
         setShortDescription("");
         setContent("");
         setFacebook("");
-        setThread("");
+      
         setSelectedCity(null);
         setSelectedState(null);
         setImages([]);

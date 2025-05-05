@@ -1,18 +1,9 @@
 import React, { useState, useEffect } from "react";
-import {
-  Container,
-  TextField,
-  MenuItem,
-  Grid,
-  Button,
-  Typography,
-  CircularProgress,
-} from "@mui/material";
-import Select from "react-select";
-import { State, City } from "country-state-city";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Select from "react-select";
+import { State, City } from "country-state-city";
 import "./AddEvents.css";
 
 const AddEvents = () => {
@@ -36,7 +27,6 @@ const AddEvents = () => {
     images: [],
   });
 
-  // Retrieve userId from localStorage on component mount
   useEffect(() => {
     const userInfo = localStorage.getItem("userData");
     const userData = userInfo ? JSON.parse(userInfo) : null;
@@ -44,7 +34,7 @@ const AddEvents = () => {
       setFormData((prev) => ({ ...prev, creator: userData._id }));
     } else {
       toast.error("User not logged in. Please log in to create an event.");
-      navigate("/login"); // Redirect to login if user is not authenticated
+      navigate("/login");
     }
   }, [navigate]);
 
@@ -112,8 +102,6 @@ const AddEvents = () => {
 
     try {
       const formdata = new FormData();
-
-      // Append all fields
       Object.keys(formData).forEach((key) => {
         if (key === "images") {
           formData.images.forEach((image) => formdata.append("img", image));
@@ -126,13 +114,10 @@ const AddEvents = () => {
         }
       });
 
-      const response = await fetch(
-        "http://82.29.166.100:4000/api/auth/addEvents",
-        {
-          method: "POST",
-          body: formdata,
-        }
-      );
+      const response = await fetch("http://82.29.166.100:4000/api/auth/addEvents", {
+        method: "POST",
+        body: formdata,
+      });
 
       const result = await response.json();
 
@@ -141,7 +126,7 @@ const AddEvents = () => {
         if (result.user) {
           localStorage.setItem("userData", JSON.stringify(result.user));
         }
-        // Reset form
+
         setFormData({
           destination: "",
           travelBuddyAge: "",
@@ -155,11 +140,12 @@ const AddEvents = () => {
           travelBuddyGender: "",
           state: null,
           city: null,
-          creator: formData.creator, // Retain creator
+          creator: formData.creator,
           images: [],
         });
         toast.success("Event added successfully!");
-        navigate("/");
+
+        navigate("/events");
       } else {
         toast.error(result.message || "Failed to add event.");
       }
@@ -172,213 +158,212 @@ const AddEvents = () => {
   };
 
   return (
-    <Container className="event-container">
-      <button
-        className=""
-        onClick={() => navigate(-1)}
-        style={{
-          position: "absolute",
-          top: "40px",
-          left: "180px",
-          zIndex: 10,
-          padding: "8px 16px",
-          fontWeight: "bold",
-          backgroundColor: "transparent",
-          color: "#ffff",
-          border: "none",
-          borderRadius: "4px",
-          cursor: "pointer",
-        }}
-      >
+    <div className=" container  event-container">
+      <ToastContainer position="top-right" autoClose={3000} />
+
+      <button className="back-button" onClick={() => navigate(-1)}>
         ← Back
       </button>
-      <Typography variant="h4" align="center" className="event-title">
-        Add New Event
-      </Typography>
-      <Grid container spacing={2}>
-        {/* Text Inputs */}
-        {[
-          { label: "Destination", name: "destination" },
-          { label: "Travel Author", name: "travelAuthor" },
-          { label: "Travel Description", name: "travelDescription" },
-          { label: "Budget", name: "budget", type: "number" },
-          { label: "Start Date", name: "startDate", type: "date" },
-          { label: "End Date", name: "endDate", type: "date" },
-        ].map((input, index) => (
-          <Grid item xs={12} sm={6} key={index}>
-            <TextField
-              fullWidth
-              label={input.label}
-              name={input.name}
-              type={input.type || "text"}
-              value={formData[input.name]}
-              onChange={handleChange}
-              InputLabelProps={input.type === "date" ? { shrink: true } : {}}
-              className="custom-input"
-              aria-label={input.label}
-              required
-            />
-          </Grid>
-        ))}
+      <h2 className="event-title">Add New Event</h2>
 
-        {/* Dropdowns */}
-        <Grid item xs={12} sm={6}>
-          <TextField
-            select
-            fullWidth
-            label="Travel Buddy Age"
-            name="travelBuddyAge"
-            value={formData.travelBuddyAge}
-            onChange={handleChange}
-            className="custom-input"
-            aria-label="Travel Buddy Age"
-          >
-            {["10-15", "15-20", "20-25", "25-30", "30-35", "35-40"].map(
-              (age) => (
-                <MenuItem key={age} value={age}>
-                  {age}
-                </MenuItem>
-              )
-            )}
-          </TextField>
-        </Grid>
+      <div className="input-wrapper">
+        <label className="input-label">Destination</label>
+        <input
+          type="text"
+          name="destination"
+          value={formData.destination}
+          onChange={handleChange}
+          className="input-field"
+          required
+        />
+      </div>
 
-        <Grid item xs={12} sm={6}>
-          <TextField
-            select
-            fullWidth
-            label="Gender"
-            name="travelBuddyGender"
-            value={formData.travelBuddyGender}
-            onChange={handleChange}
-            className="custom-input"
-            aria-label="Travel Buddy Gender"
-          >
-            {["Male", "Female", "Other"].map((gender) => (
-              <MenuItem key={gender} value={gender}>
-                {gender}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Grid>
+      <div className="input-wrapper">
+        <label className="input-label">Travel Author</label>
+        <input
+          type="text"
+          name="travelAuthor"
+          value={formData.travelAuthor}
+          onChange={handleChange}
+          className="input-field"
+          required
+        />
+      </div>
 
-        <Grid item xs={12} sm={6}>
-          <TextField
-            select
-            fullWidth
-            label="Transport"
-            name="transport"
-            value={formData.transport}
-            onChange={handleChange}
-            className="custom-input"
-            aria-label="Transport"
-          >
-            {["Car", "Bus", "Train", "Flight", "Bike", "Boat"].map((t) => (
-              <MenuItem key={t} value={t}>
-                {t}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Grid>
+      <div className="input-wrapper">
+        <label className="input-label">Travel Description</label>
+        <textarea
+          name="travelDescription"
+          value={formData.travelDescription}
+          onChange={handleChange}
+          className="textarea-field"
+          required
+        />
+      </div>
 
-        <Grid item xs={12} sm={6}>
-          <TextField
-            select
-            fullWidth
-            label="Interest"
-            name="interests"
-            value={formData.interests}
-            onChange={handleChange}
-            className="custom-input"
-            aria-label="Interest"
-          >
-            {[
-              "Mountains",
-              "Trekking",
-              "Beaches",
-              "Wildlife",
-              "City Tour",
-              "Adventure Sports",
-              "Cultural",
-            ].map((int) => (
-              <MenuItem key={int} value={int}>
-                {int}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Grid>
+      <div className="input-wrapper">
+        <label className="input-label">Budget</label>
+        <input
+          type="number"
+          name="budget"
+          value={formData.budget}
+          onChange={handleChange}
+          className="input-field"
+          required
+        />
+      </div>
 
-        {/* State & City */}
-        <Grid item xs={12} sm={6}>
-          <Typography variant="body1">State</Typography>
-          <Select
-            className="text-dark"
-            options={states}
-            value={formData.state}
-            onChange={handleStateChange}
-            placeholder="Select State"
-            aria-label="Select State"
-            required
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <Typography variant="body1">City</Typography>
-          <Select
-            className="text-dark"
-            options={cities}
-            value={formData.city}
-            onChange={handleCityChange}
-            placeholder="Select City"
-            isDisabled={!formData.state}
-            aria-label="Select City"
-            required
-          />
-        </Grid>
+      <div className="input-wrapper">
+        <label className="input-label">Start Date</label>
+        <input
+          type="date"
+          name="startDate"
+          value={formData.startDate}
+          onChange={handleChange}
+          className="input-field"
+          required
+        />
+      </div>
 
-        {/* Image Upload */}
-        <Grid item xs={12}>
-          <Typography variant="body1">Upload Images</Typography>
-          <input
-            type="file"
-            multiple
-            onChange={handleImageChange}
-            accept="image/*"
-            aria-label="Upload Images"
-          />
-        </Grid>
+      <div className="input-wrapper">
+        <label className="input-label">End Date</label>
+        <input
+          type="date"
+          name="endDate"
+          value={formData.endDate}
+          onChange={handleChange}
+          className="input-field"
+          required
+        />
+      </div>
 
-        <Grid container justifyContent="flex-end" spacing={2} sx={{ mt: 4 }}>
-          <Grid item>
-            <Button
-              variant="contained"
-              className="submit-button"
-              style={{ backgroundColor: "#6c757d" }}
-              onClick={() => navigate(-1)}
-            >
-              Close
-            </Button>
-          </Grid>
-          <Grid item>
-            <Button
-              variant="contained"
-              className="submit-button"
-              onClick={addEvent}
-              disabled={isLoading}
-              aria-label="Submit Event"
-            >
-              {isLoading ? (
-                <>
-                  <CircularProgress size={24} style={{ marginRight: 8 }} />
-                  Submitting...
-                </>
-              ) : (
-                "Submit Event"
-              )}
-            </Button>
-          </Grid>
-        </Grid>
-      </Grid>
-    </Container>
+      <div className="input-wrapper">
+        <label className="input-label">Travel Buddy Age</label>
+        <select
+          name="travelBuddyAge"
+          value={formData.travelBuddyAge}
+          onChange={handleChange}
+          className="select-field"
+        >
+          <option value="">Select Age Range</option>
+          {["10-15", "15-20", "20-25", "25-30", "30-35", "35-40"].map((age) => (
+            <option key={age} value={age}>
+              {age}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="input-wrapper">
+        <label className="input-label">Gender</label>
+        <select
+          name="travelBuddyGender"
+          value={formData.travelBuddyGender}
+          onChange={handleChange}
+          className="select-field"
+        >
+          <option value="">Select Gender</option>
+          {["Male", "Female", "Other"].map((gender) => (
+            <option key={gender} value={gender}>
+              {gender}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="input-wrapper">
+        <label className="input-label">Transport</label>
+        <select
+          name="transport"
+          value={formData.transport}
+          onChange={handleChange}
+          className="select-field"
+        >
+          <option value="">Select Transport</option>
+          {["Car", "Bus", "Train", "Flight", "Bike", "Boat"].map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="input-wrapper">
+        <label className="input-label">Interest</label>
+        <select
+          name="interests"
+          value={formData.interests}
+          onChange={handleChange}
+          className="select-field"
+        >
+          <option value="">Select Interest</option>
+          {[
+            "Mountains",
+            "Trekking",
+            "Beaches",
+            "Wildlife",
+            "City Tour",
+            "Adventure Sports",
+            "Cultural",
+          ].map((int) => (
+            <option key={int} value={int}>
+              {int}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="input-wrapper">
+        <label className="input-label">State</label>
+        <Select
+          options={states}
+          value={formData.state}
+          onChange={handleStateChange}
+          placeholder="Select State"
+          className="react-select-container"
+          classNamePrefix="react-select"
+          required
+        />
+      </div>
+
+      <div className="input-wrapper">
+        <label className="input-label">City</label>
+        <Select
+          options={cities}
+          value={formData.city}
+          onChange={handleCityChange}
+          placeholder="Select City"
+          isDisabled={!formData.state}
+          className="react-select-container"
+          classNamePrefix="react-select"
+          required
+        />
+      </div>
+
+      <div className="input-wrapper">
+        <label className="input-label">Upload Images</label>
+        <input
+          type="file"
+          multiple
+          onChange={handleImageChange}
+          accept="image/*"
+          className="file-input"
+        />
+      </div>
+
+      <div className="button-wrapper">
+        <button className="close-button" onClick={() => navigate(-1)}>
+          Close
+        </button>
+        <button
+          className="submit-button"
+          onClick={addEvent}
+          disabled={isLoading}
+        >
+          {isLoading ? "Submitting..." : "Submit Event"}
+        </button>
+      </div>
+    </div>
   );
 };
 
