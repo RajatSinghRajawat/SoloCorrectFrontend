@@ -43,7 +43,7 @@ const AccountProfile = () => {
         throw new Error("User data not found in localStorage");
       }
       const userId = userData.user?._id || userData._id;
-      const response = await fetch(`http://82.29.166.100:4000/api/auth/user/${userId}`);
+      const response = await fetch(`http://localhost:4000/api/auth/user/${userId}`);
       const result = await response.json();
       if (result.user) {
         setFormData({
@@ -114,7 +114,7 @@ const AccountProfile = () => {
       }
       const userId = userData.user?._id || userData._id;
 
-      const response = await fetch(`http://82.29.166.100:4000/api/auth/update/${userId}`, {
+      const response = await fetch(`http://localhost:4000/api/auth/update/${userId}`, {
         method: "PUT",
         body: formdata,
       });
@@ -256,6 +256,7 @@ const AccountProfile = () => {
                                   value={formData.name}
                                   onChange={handleChange}
                                   name="name"
+                                  readOnly
                                 />
                               </div>
                             </div>
@@ -271,6 +272,7 @@ const AccountProfile = () => {
                                   value={formData.textarea}
                                   onChange={handleChange}
                                   name="textarea"
+                                  readOnly
                                 />
                               </div>
                             </div>
@@ -284,6 +286,7 @@ const AccountProfile = () => {
                                   value={formData.committingName}
                                   onChange={handleChange}
                                   name="committingName"
+                                  readOnly
                                 />
                               </div>
                             </div>
@@ -306,6 +309,7 @@ const AccountProfile = () => {
                                 value={formData.country}
                                 onChange={handleChange}
                                 name="country"
+                                disabled
                               >
                                 <option value="" disabled>
                                   Select Country
@@ -327,6 +331,7 @@ const AccountProfile = () => {
                                 value={formData.city}
                                 onChange={handleChange}
                                 name="city"
+                                disabled
                               >
                                 <option value="" disabled>
                                   Select City
@@ -350,6 +355,7 @@ const AccountProfile = () => {
                                 value={formData.travelStyle}
                                 onChange={handleChange}
                                 name="travelStyle"
+                                disabled
                               >
                                 <option value="" disabled>
                                   Select Travel Style
@@ -370,6 +376,7 @@ const AccountProfile = () => {
                                 value={formData.budgetRange}
                                 onChange={handleChange}
                                 name="budgetRange"
+                                disabled
                               >
                                 <option value="" disabled>
                                   Select Budget Range
@@ -391,6 +398,7 @@ const AccountProfile = () => {
                                 value={formData.foodPreference}
                                 onChange={handleChange}
                                 name="foodPreference"
+                                disabled
                               >
                                 <option value="" disabled>
                                   Select Food Preference
@@ -410,6 +418,7 @@ const AccountProfile = () => {
                                 value={formData.hiking}
                                 onChange={handleChange}
                                 name="hiking"
+                                disabled
                               >
                                 <option value="" disabled>
                                   Select Activity
@@ -576,7 +585,7 @@ const AccountProfile = () => {
                 <option>Nightlife</option>
               </select>
             </div>
-            <div className="input-group">
+            {/* <div className="input-group">
               <label htmlFor="file">Profile Image</label>
               <input
                 type="file"
@@ -584,7 +593,7 @@ const AccountProfile = () => {
                 id="file"
                 onChange={handleFileChange}
               />
-            </div>
+            </div> */}
             <div className="input-group">
               <label htmlFor="textarea">Bio</label>
               <textarea

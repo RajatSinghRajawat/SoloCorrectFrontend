@@ -37,7 +37,7 @@
 //       redirect: "follow",
 //     };
 
-//     fetch("http://82.29.166.100:4000/api/auth/logout", requestOptions)
+//     fetch("http://localhost:4000/api/auth/logout", requestOptions)
 //       .then((response) => response.json())
 //       .then((result) => {
 //         console.log("Logout API Result:", result);

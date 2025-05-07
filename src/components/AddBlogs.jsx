@@ -14,6 +14,7 @@ const AddBlogs = () => {
   const [facebook, setFacebook] = useState("");
 
   const [images, setImages] = useState([]);
+  const [author, setAuthor] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedState, setSelectedState] = useState(null);
   const [selectedCity, setSelectedCity] = useState(null);
@@ -52,18 +53,18 @@ const AddBlogs = () => {
       formdata.append("shortdescription", shortDescription);
       formdata.append("fulldescription", content);
       formdata.append("facebook", facebook);
-  
+      formdata.append("author", author);
+
       formdata.append("States", selectedState?.label || "");
       formdata.append("City", selectedCity?.label || "");
+      formdata.append("likes", "5");
+      formdata.append("comment", "hello");
 
       setLoading(true);
-      const response = await fetch(
-        "http://82.29.166.100:4000/api/auth/addblogs",
-        {
-          method: "POST",
-          body: formdata,
-        }
-      );
+      const response = await fetch("http://localhost:4000/api/auth/addblogs", {
+        method: "POST",
+        body: formdata,
+      });
 
       const result = await response.json();
       setLoading(false);
@@ -74,7 +75,7 @@ const AddBlogs = () => {
         setShortDescription("");
         setContent("");
         setFacebook("");
-      
+        setAuthor("");
         setSelectedCity(null);
         setSelectedState(null);
         setImages([]);
@@ -146,16 +147,16 @@ const AddBlogs = () => {
                   placeholder="Enter Instagram Link"
                 />
               </div>
-              {/* <div className="form-group">
+              <div className="form-group">
                 <label className="form-label">Thread</label>
                 <input
                   type="text"
-                  value={thread}
-                  onChange={(e) => setThread(e.target.value)}
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
                   className="form-input"
-                  placeholder="Enter Thread Link"
+                  placeholder="Enter Author Name"
                 />
-              </div> */}
+              </div>
               <div className="form-group">
                 <label className="form-label">Select State</label>
                 <Select
@@ -179,11 +180,23 @@ const AddBlogs = () => {
                 <label className="form-label">Short Description</label>
                 <textarea
                   value={shortDescription}
-                  onChange={(e) => setShortDescription(e.target.value)}
+                  onChange={(e) => {
+                    const text = e.target.value;
+                    const words = text.trim().split(/\s+/);
+                    if (words.length <= 200) {
+                      setShortDescription(text);
+                    }
+                  }}
                   className="form-input"
-                  placeholder="Write a brief description"
+                  placeholder="Write a brief description (max 200 words)"
                 />
+                <small style={{ color: "gray" }}>
+                  Word count:{" "}
+                  {shortDescription.trim().split(/\s+/).filter(Boolean).length}
+                  /200
+                </small>
               </div>
+
               <div className="form-group">
                 <label className="form-label">Image Upload</label>
                 <input

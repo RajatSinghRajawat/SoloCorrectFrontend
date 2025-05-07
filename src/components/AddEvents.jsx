@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Select from "react-select";
 import { State, City } from "country-state-city";
@@ -114,7 +114,7 @@ const AddEvents = () => {
         }
       });
 
-      const response = await fetch("http://82.29.166.100:4000/api/auth/addEvents", {
+      const response = await fetch("http://localhost:4000/api/auth/addEvents", {
         method: "POST",
         body: formdata,
       });
@@ -122,6 +122,7 @@ const AddEvents = () => {
       const result = await response.json();
 
       if (response.ok) {
+        console.log("Event added successfully, showing toast");
         localStorage.setItem("eventId", JSON.stringify(result.data._id));
         if (result.user) {
           localStorage.setItem("userData", JSON.stringify(result.user));
@@ -143,9 +144,13 @@ const AddEvents = () => {
           creator: formData.creator,
           images: [],
         });
-        toast.success("Event added successfully!");
-
-        navigate("/events");
+        toast.success("Event added successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        setTimeout(() => {
+          navigate("/events");
+        }, 3500);
       } else {
         toast.error(result.message || "Failed to add event.");
       }
@@ -158,8 +163,19 @@ const AddEvents = () => {
   };
 
   return (
-    <div className=" container  event-container">
-      <ToastContainer position="top-right" autoClose={3000} />
+    <div className="container event-container">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
 
       <button className="back-button" onClick={() => navigate(-1)}>
         ← Back

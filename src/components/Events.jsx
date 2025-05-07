@@ -37,7 +37,7 @@ const Listings = () => {
 
     try {
       const response = await fetch(
-        `http://82.29.166.100:4000/api/auth/getEvents?page=${page}&limit=${limit}${stateParam}${cityParam}`
+        `http://localhost:4000/api/auth/getEvents?page=${page}&limit=${limit}${stateParam}${cityParam}`
       );
       const result = await response.json();
       if (Array.isArray(result.travel)) {
@@ -76,7 +76,7 @@ const Listings = () => {
       };
 
       const response = await fetch(
-        "http://82.29.166.100:4000/api/auth/sendUserDetailsToEventCreator",
+        "http://localhost:4000/api/auth/sendUserDetailsToEventCreator",
         requestOptions
       );
       const result = await response.json();
@@ -306,7 +306,7 @@ const Listings = () => {
                             key={index}
                           >
                             <img
-                              src={`http://82.29.166.100:4000/${img}`}
+                              src={`http://localhost:4000/${img}`}
                               className="d-block w-100"
                               alt={`Event ${index}`}
                               style={{ height: "300px", objectFit: "cover" }}
@@ -468,7 +468,7 @@ const ListingCard = ({
         {listing.img && listing.img.length > 0 ? (
           <>
             <img
-              src={`http://82.29.166.100:4000/${listing.img[currentImageIndex]}`}
+              src={`http://localhost:4000/${listing.img[currentImageIndex]}`}
               alt="Event"
             />
             {listing.img.length > 1 && (

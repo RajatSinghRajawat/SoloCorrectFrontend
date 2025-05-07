@@ -19,7 +19,7 @@ const Wonderlust = () => {
   const fetchBlogs = async () => {
     try {
       const response = await fetch(
-        `http://82.29.166.100:4000/api/auth/getblogs?page=${page}&limit=6&States=${myState.state}&City=${myState.city}`
+        `http://localhost:4000/api/auth/getblogs?page=${page}&limit=6&States=${myState.state}&City=${myState.city}`
       );
       const result = await response.json();
 
@@ -56,7 +56,7 @@ const Wonderlust = () => {
         redirect: "follow", 
       };
 
-      fetch("http://82.29.166.100:4000/api/auth/adminget", requestOptions)
+      fetch("http://localhost:4000/api/auth/adminget", requestOptions)
         .then((response) => response.json())
         .then((result) => {
           Setadmin(result);
@@ -261,7 +261,7 @@ const Wonderlust = () => {
                 <div className="card blog-card shadow-lg border-0 rounded-4">
                   <div className="image-container position-relative">
                     <img
-                      src={`http://82.29.166.100:4000/${
+                      src={`http://localhost:4000/${
                         res?.img[currentImageIndex[res?._id] || 0]
                       }`}
                       alt={`Image ${currentImageIndex[res?._id] + 1 || 1}`}

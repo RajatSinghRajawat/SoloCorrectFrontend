@@ -9,16 +9,27 @@ import { FaInstagram, FaFacebook, FaTwitter } from "react-icons/fa"; // Import i
 import Demo from "./images/4.png";
 import ABC from "./images/4.png";
 import David from "./images/nn.webp";
+import { CiHeart } from "react-icons/ci";
+import { FaHeart } from "react-icons/fa";
+import { IoSend } from "react-icons/io5";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { FaShare } from "react-icons/fa";
 const Blogs = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [data, setData] = useState({});
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState({});
 
+  // Fetch userId from localStorage
+  const userData = JSON.parse(localStorage.getItem("userData"));
+  const userId = userData?._id || null;
   // Fetch single blog by ID
   const GetSoloblog = async () => {
     try {
       const response = await fetch(
-        `http://82.29.166.100:4000/api/auth/getblog/${encodeURIComponent(id)}`
+        `http://localhost:4000/api/auth/getblog/${encodeURIComponent(id)}`
       );
       const result = await response.json();
       console.log("API Response:", result);
@@ -38,6 +49,73 @@ const Blogs = () => {
 
   const [data2, setData2] = useState([]);
 
+  const handleLike = async (blogId) => {
+    if (!userId) {
+      toast.error("Please log in to like a blog");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:4000/api/auth/like/${blogId}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+        }
+      );
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success("Like updated successfully");
+        GetBlogs(); // Refresh blogs to update like count
+      } else {
+        toast.error(result.message || "Error updating like");
+        console.error("API Error Response:", result);
+      }
+    } catch (error) {
+      toast.error("Error updating like");
+      console.error("Like API Error:", error);
+    }
+  };
+
+  const handleComment = async (blogId) => {
+    if (!userId) {
+      toast.error("Please log in to comment");
+      return;
+    }
+
+    const text = commentText[blogId]?.trim();
+    if (!text) {
+      toast.error("Comment cannot be empty");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:4000/api/auth/comment/${blogId}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, text }),
+        }
+      );
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success("Comment added successfully");
+        setCommentText((prev) => ({ ...prev, [blogId]: "" }));
+        GetBlogs();
+      } else {
+        toast.error(result.message || "Error adding comment");
+        console.error("API Error Response:", result);
+      }
+    } catch (error) {
+      toast.error("Error adding comment");
+      console.error("Comment API Error:", error);
+    }
+  };
+
   const GetBlogs = async () => {
     try {
       const requestOptions = {
@@ -46,7 +124,7 @@ const Blogs = () => {
       };
 
       const response = await fetch(
-        "http://82.29.166.100:4000/api/auth/getblogs",
+        "http://localhost:4000/api/auth/getblogs",
         requestOptions
       );
       const result = await response.json();
@@ -61,49 +139,113 @@ const Blogs = () => {
       console.error("API Error:", error);
     }
   };
+  const GetComments = async () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        redirect: "follow",
+      };
+
+      const response = await fetch(
+        `http://localhost:4000/api/auth/comments/${encodeURIComponent(id)}`,
+        requestOptions
+      );
+      const result = await response.json();
+      console.log("Comments Response:", result);
+      if (result) {
+        setComments(result.comments);
+      }
+    } catch (error) {
+      console.error("Comments API Error:", error);
+    }
+  };
 
   useEffect(() => {
     GetBlogs();
+    GetComments();
   }, []);
 
   return (
     <div>
       <Header />
+
       <div className="blog-container">
+        <div className="py-4" style={{ padding: "10px 0", textAlign: "start" }}>
+          <h5 className="card-title text-light fw-bold">
+            Title : {data.title}
+          </h5>
+        </div>{" "}
         <div className="image-gallery">
           {Array.isArray(data?.img) && data?.img.length > 0 ? (
             <>
               <div className="large-image">
                 <img
-                  src={`http://82.29.166.100:4000/${data.img[0]}`}
+                  src={`http://localhost:4000/${data.img[0]}`}
                   className="blog-image"
                   alt="Main Blog Image"
                 />
               </div>
+
               <div className="right-images">
-                {data.img.slice(1, 5).map((image, index) => (
+                {data.img.slice(1, 3).map((image, index) => (
                   <div key={index} className="small-image">
                     <img
-                      src={`http://82.29.166.100:4000/${image}`}
+                      src={`http://localhost:4000/${image}`}
                       className="blog-image"
                       alt={`Thumbnail ${index + 1}`}
                     />
                   </div>
                 ))}
               </div>
+              {data.img.slice(3, 5).map((image, index) => (
+                <div key={index} className="small-image">
+                  <img
+                    src={`http://localhost:4000/${image}`}
+                    className=""
+                    style={{ height: "20rem", objectFit: "cover" }}
+                    alt={`Thumbnail ${index + 1}`}
+                  />
+                </div>
+              ))}
             </>
           ) : (
             <p>No images available</p>
           )}
         </div>
-
         {/* Blog Content */}
         <div className="blog-content">
-          <h1>Some nice upgrades for Apple’s best gadgets</h1>
-          <p className="blog-description">{data?.shortdescription}</p>
+          <h1>Shortdescription for this Blog</h1>
+          <p className="blog-description">
+            <strong>Shortdescription</strong> :{data?.shortdescription}
+          </p>
 
+          <p className="blog-author d-flex align-items-center gap-2">
+            by <span className="author-name">{data.author || "!Author"}</span>{" "}
+            <div className="d-flex align-items-center">
+              <button
+                onClick={() => handleLike(data._id)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "white",
+                }}
+              >
+                {data.likes?.map(String).includes(userId) ? (
+                  <FaHeart color="red" size={20} />
+                ) : (
+                  <CiHeart size={20} />
+                )}
+              </button>
+              <span className="ms-2 text-muted">
+                {data.likes?.length || 0} Likes
+              </span>
+              <div className="ms-2">
+                <FaShare />
+              </div>
+            </div>{" "}
+          </p>
           <p className="blog-author">
-            by <span className="author-name">David Pierce</span> <br />
             {new Date(data?.createdAt).toLocaleString("en-US", {
               month: "short",
               day: "numeric",
@@ -122,9 +264,72 @@ const Blogs = () => {
             <FaThreads className="icon" />
           </div>
 
-          <div className="comment-section">
+          {/* <div className="comment-section">
             <div className="comment-count">81</div>
             <span>Comments (81 New)</span>
+          </div> */}
+          <div className="d-flex align-items-center">
+            <input
+              className="mt-3"
+              type="text"
+              placeholder="Add a comment..."
+              value={commentText[data._id] || ""}
+              onChange={(e) =>
+                setCommentText((prev) => ({
+                  ...prev,
+                  [data._id]: e.target.value,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "8px 0",
+                border: "none",
+                borderBottom: "2px solid grey",
+                background: "transparent",
+                outline: "none",
+                color: "#333",
+                fontSize: "0.9rem",
+              }}
+              onKeyPress={(e) => {
+                if (e.key === "Enter") handleComment(data._id);
+              }}
+            />
+            <button
+              onClick={() => handleComment(data._id)}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                marginLeft: "8px",
+              }}
+            >
+              <IoSend size={20} color="#ff9800" />
+            </button>
+          </div>
+          <div className="comments-section mt-4">
+            <h3>Comments</h3>
+            {comments.length > 0 ? (
+              comments.map((comment, index) => (
+                <div key={index} className="comment">
+                  <p>
+                    <strong>{comment.user?.name || "Unknown User"} </strong>:{" "}
+                    {comment.text}
+                  </p>
+                  <small>
+                    {new Date(comment.createdAt).toLocaleString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                      hour: "numeric",
+                      minute: "numeric",
+                      hour12: true,
+                    })}
+                  </small>
+                </div>
+              ))
+            ) : (
+              <p>No comments yet.</p>
+            )}
           </div>
 
           <hr className="divider" />
@@ -133,7 +338,6 @@ const Blogs = () => {
             commission. See our ethics statement.
           </i>
         </div>
-
         <div className="container mt-4">
           <div className="row">
             <div className="col-lg-7">
@@ -154,7 +358,7 @@ const Blogs = () => {
                 </p>
               </div>
 
-              <div className="p-4 shadow-sm  text-white">
+              {/* <div className="p-4 shadow-sm  text-white">
                 <p>
                   Hi, friends! Welcome to <i>Installer</i> No. 74, your guide to
                   the best and <i>Verge</i>-iest stuff in the world. (If you're
@@ -168,7 +372,7 @@ const Blogs = () => {
                   <b>sports analytics</b>; devouring the first season of{" "}
                   <b>Running Point</b> and the seventh season of{" "}
                   <i>Drive to Survive</i>; listening to <i>Scam Inc</i> and{" "}
-                  <i>Tested</i>; obsessing over my progress in{" "}
+                  <i>Tested</i>; obsessing over my progdatas in{" "}
                   <b>Fantasy Hike</b>; getting the hang of <i>Tiny Wings</i>{" "}
                   again; and making a lot of pancakes for a toddler who suddenly
                   won’t eat anything else.
@@ -200,12 +404,11 @@ const Blogs = () => {
                   </a>
                   .)
                 </p>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
-
-        <div className="container">
+        {/* <div className="container">
           <div className="row">
             <div className="col-lg-7">
               <ul className="text-white">
@@ -340,7 +543,7 @@ const Blogs = () => {
         <li >It’s a great moment for classic RPGs</li> 
         <hr style={{color:'#fff', width:'50%', height:'3px'}}/>
       </ol> */}
-              <div className="p-4 text-white">
+        {/* <div className="p-4 text-white">
                 {data2?.slice(0, 5).map((res, index) => {
                   return (
                     <li
@@ -363,8 +566,8 @@ const Blogs = () => {
                       </div>
                       <div className="story-thumbnail">
                         {/* <img src={res.img} alt={res?._id} /> */}
-                        <img
-                          src={`http://82.29.166.100:4000/${res?.img?.[0]}`} // First image from array
+        {/* <img
+                          src={`http://localhost:4000/${res?.img?.[0]}`} // First image from array
                           alt={res?.title}
                           style={{
                             width: "100%",
@@ -377,11 +580,10 @@ const Blogs = () => {
                   );
                 })}
               </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="container mt-4">
+            </div> */}
+        {/* </div> */}
+        {/* </div>   */}
+        {/* <div className="container mt-4">
           <div className="row">
             <div className="col-lg-7">
               <h2 className="text-white">Screen share </h2>
@@ -591,7 +793,7 @@ const Blogs = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
