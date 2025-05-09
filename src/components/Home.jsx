@@ -16,7 +16,7 @@ const Home = () => {
       };
 
       const response = await fetch(
-        "http://localhost:4000/api/auth/getblogs",
+        "http://82.29.166.100:4000/api/auth/getblogs",
         requestOptions
       );
       const result = await response.json();
@@ -58,7 +58,7 @@ const Home = () => {
               <div className="featured-article">
                 <div className="featured-image-container">
                   {/* <img
-                    src={`http://localhost:4000/${sortedData[0]?.img?.[0] || solotrip}`}
+                    src={`http://82.29.166.100:4000/${sortedData[0]?.img?.[0] || solotrip}`}
                     alt="Featured"
                     className="featured-image"
                   /> */}
@@ -132,7 +132,7 @@ const Home = () => {
                       }}
                     >
                       <img
-                        src={`http://localhost:4000/${res?.img?.[0]}`}
+                        src={`http://82.29.166.100:4000/${res?.img?.[0]}`}
                         alt={res?.title}
                         style={{
                           width: "100%",

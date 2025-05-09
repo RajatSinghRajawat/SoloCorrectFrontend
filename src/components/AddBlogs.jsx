@@ -61,7 +61,7 @@ const AddBlogs = () => {
       formdata.append("comment", "hello");
 
       setLoading(true);
-      const response = await fetch("http://localhost:4000/api/auth/addblogs", {
+      const response = await fetch("http://82.29.166.100:4000/api/auth/addblogs", {
         method: "POST",
         body: formdata,
       });

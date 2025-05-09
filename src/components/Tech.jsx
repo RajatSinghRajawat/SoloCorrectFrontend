@@ -48,7 +48,7 @@ const Tech = () => {
       }).toString();
 
       const response = await fetch(
-        `http://localhost:4000/api/auth/getblogs?${query}`
+        `http://82.29.166.100:4000/api/auth/getblogs?${query}`
       );
       const result = await response.json();
       console.log("API Response:", result);
@@ -87,7 +87,7 @@ const Tech = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/api/auth/like/${blogId}`,
+        `http://82.29.166.100:4000/api/auth/like/${blogId}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -123,7 +123,7 @@ const Tech = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/api/auth/comment/${blogId}`,
+        `http://82.29.166.100:4000/api/auth/comment/${blogId}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -357,7 +357,7 @@ const Tech = () => {
                   <div className="card blog-card shadow-lg border-0 rounded-4">
                     <div className="image-container position-relative">
                       <img
-                        src={`http://localhost:4000/${
+                        src={`http://82.29.166.100:4000/${
                           res.img[currentImageIndex[res._id] || 0]
                         }`}
                         alt={`Image ${currentImageIndex[res._id] + 1 || 1}`}

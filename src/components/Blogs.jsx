@@ -8,7 +8,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FaInstagram, FaFacebook, FaTwitter } from "react-icons/fa"; // Import icons
 import Demo from "./images/4.png";
 import ABC from "./images/4.png";
-import David from "./images/nn.webp";
+import David from "./images/avtar.jpeg";
 import { CiHeart } from "react-icons/ci";
 import { FaHeart } from "react-icons/fa";
 import { IoSend } from "react-icons/io5";
@@ -29,7 +29,7 @@ const Blogs = () => {
   const GetSoloblog = async () => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/auth/getblog/${encodeURIComponent(id)}`
+        `http://82.29.166.100:4000/api/auth/getblog/${encodeURIComponent(id)}`
       );
       const result = await response.json();
       console.log("API Response:", result);
@@ -57,7 +57,7 @@ const Blogs = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/api/auth/like/${blogId}`,
+        `http://82.29.166.100:4000/api/auth/like/${blogId}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -93,7 +93,7 @@ const Blogs = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/api/auth/comment/${blogId}`,
+        `http://82.29.166.100:4000/api/auth/comment/${blogId}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -124,7 +124,7 @@ const Blogs = () => {
       };
 
       const response = await fetch(
-        "http://localhost:4000/api/auth/getblogs",
+        "http://82.29.166.100:4000/api/auth/getblogs",
         requestOptions
       );
       const result = await response.json();
@@ -147,7 +147,7 @@ const Blogs = () => {
       };
 
       const response = await fetch(
-        `http://localhost:4000/api/auth/comments/${encodeURIComponent(id)}`,
+        `http://82.29.166.100:4000/api/auth/comments/${encodeURIComponent(id)}`,
         requestOptions
       );
       const result = await response.json();
@@ -172,7 +172,7 @@ const Blogs = () => {
       <div className="blog-container">
         <div className="py-4" style={{ padding: "10px 0", textAlign: "start" }}>
           <h5 className="card-title text-light fw-bold">
-            Title : {data.title}
+             {data.title}
           </h5>
         </div>{" "}
         <div className="image-gallery">
@@ -180,7 +180,7 @@ const Blogs = () => {
             <>
               <div className="large-image">
                 <img
-                  src={`http://localhost:4000/${data.img[0]}`}
+                  src={`http://82.29.166.100:4000/${data.img[0]}`}
                   className="blog-image"
                   alt="Main Blog Image"
                 />
@@ -190,7 +190,7 @@ const Blogs = () => {
                 {data.img.slice(1, 3).map((image, index) => (
                   <div key={index} className="small-image">
                     <img
-                      src={`http://localhost:4000/${image}`}
+                      src={`http://82.29.166.100:4000/${image}`}
                       className="blog-image"
                       alt={`Thumbnail ${index + 1}`}
                     />
@@ -200,7 +200,7 @@ const Blogs = () => {
               {data.img.slice(3, 5).map((image, index) => (
                 <div key={index} className="small-image">
                   <img
-                    src={`http://localhost:4000/${image}`}
+                    src={`http://82.29.166.100:4000/${image}`}
                     className=""
                     style={{ height: "20rem", objectFit: "cover" }}
                     alt={`Thumbnail ${index + 1}`}
@@ -216,10 +216,9 @@ const Blogs = () => {
         <div className="blog-content">
           <h1>Shortdescription for this Blog</h1>
           <p className="blog-description">
-            <strong>Shortdescription</strong> :{data?.shortdescription}
+            {data?.shortdescription}
           </p>
-
-          <p className="blog-author d-flex align-items-center gap-2">
+         <p className="blog-author d-flex align-items-center gap-2">
             by <span className="author-name">{data.author || "!Author"}</span>{" "}
             <div className="d-flex align-items-center">
               <button
@@ -306,7 +305,31 @@ const Blogs = () => {
               <IoSend size={20} color="#ff9800" />
             </button>
           </div>
-          <div className="comments-section mt-4">
+          
+
+          <hr className="divider" />
+          
+        </div>
+        <div className="container mt-4">
+          <div className="row">
+            <div className="col-lg-7">
+              <div style={{ display: "flex", alignContent: "center" }}>
+                <img
+                  src={David}
+                  style={{
+                    width: "50px",
+                    height: "50px",
+                    borderRadius: "10px",
+                  }}
+                />
+                <p className="text-white ms-3 mt-2">
+                  {" "}
+                  <div
+                    dangerouslySetInnerHTML={{ __html: data?.fulldescription }}
+                  />
+                </p>
+              </div>
+              <div className="comments-section mt-4">
             <h3>Comments</h3>
             {comments.length > 0 ? (
               comments.map((comment, index) => (
@@ -331,33 +354,6 @@ const Blogs = () => {
               <p>No comments yet.</p>
             )}
           </div>
-
-          <hr className="divider" />
-          <i className="note">
-            If you buy something from a Verge link, Vox Media may earn a
-            commission. See our ethics statement.
-          </i>
-        </div>
-        <div className="container mt-4">
-          <div className="row">
-            <div className="col-lg-7">
-              <div style={{ display: "flex", alignContent: "center" }}>
-                <img
-                  src={David}
-                  style={{
-                    width: "50px",
-                    height: "50px",
-                    borderRadius: "10px",
-                  }}
-                />
-                <p className="text-white ms-3 mt-2">
-                  {" "}
-                  <div
-                    dangerouslySetInnerHTML={{ __html: data?.fulldescription }}
-                  />
-                </p>
-              </div>
-
               {/* <div className="p-4 shadow-sm  text-white">
                 <p>
                   Hi, friends! Welcome to <i>Installer</i> No. 74, your guide to
@@ -567,7 +563,7 @@ const Blogs = () => {
                       <div className="story-thumbnail">
                         {/* <img src={res.img} alt={res?._id} /> */}
         {/* <img
-                          src={`http://localhost:4000/${res?.img?.[0]}`} // First image from array
+                          src={`http://82.29.166.100:4000/${res?.img?.[0]}`} // First image from array
                           alt={res?.title}
                           style={{
                             width: "100%",
