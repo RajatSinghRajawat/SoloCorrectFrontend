@@ -36,9 +36,32 @@ const AddBlogs = () => {
     : [];
 
   const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    setImages(files);
+    const selectedFiles = Array.from(e.target.files);
+    const validFiles = [];
+    let hasInvalid = false;
+
+    selectedFiles.forEach((file) => {
+      if (allowedTypes.includes(file.type)) {
+        validFiles.push(file);
+      } else {
+        hasInvalid = true;
+      }
+    });
+
+    if (hasInvalid) {
+      toast.error("Only .avif, .jpeg, .png, or .webp files are allowed.");
+    }
+
+    setImages(validFiles);
   };
+
+  const allowedTypes = [
+    "image/avif",
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp",
+  ];
 
   const CreateApi = async () => {
     try {
@@ -61,10 +84,13 @@ const AddBlogs = () => {
       formdata.append("comment", "hello");
 
       setLoading(true);
-      const response = await fetch("http://82.29.166.100:4000/api/auth/addblogs", {
-        method: "POST",
-        body: formdata,
-      });
+      const response = await fetch(
+        "http://82.29.166.100:4000/api/auth/addblogs",
+        {
+          method: "POST",
+          body: formdata,
+        }
+      );
 
       const result = await response.json();
       setLoading(false);
@@ -148,7 +174,7 @@ const AddBlogs = () => {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Thread</label>
+                <label className="form-label">Author Name</label>
                 <input
                   type="text"
                   value={author}
@@ -202,7 +228,7 @@ const AddBlogs = () => {
                 <input
                   type="file"
                   ref={fileInputRef}
-                  accept="image/*"
+                  accept=".avif,.jpeg,.jpg,.png,.webp"
                   multiple
                   onChange={handleImageChange}
                   style={{

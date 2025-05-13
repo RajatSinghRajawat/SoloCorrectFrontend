@@ -30,7 +30,7 @@ const Tech = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState({});
   const [searchTitle, setSearchTitle] = useState("");
-  const [commentText, setCommentText] = useState({});
+  // const [commentText, setCommentText] = useState({});
 
   // Fetch userId from localStorage
   const userData = JSON.parse(localStorage.getItem("userData"));
@@ -109,42 +109,42 @@ const Tech = () => {
     }
   };
 
-  const handleComment = async (blogId) => {
-    if (!userId) {
-      toast.error("Please log in to comment");
-      return;
-    }
+  // const handleComment = async (blogId) => {
+  //   if (!userId) {
+  //     toast.error("Please log in to comment");
+  //     return;
+  //   }
 
-    const text = commentText[blogId]?.trim();
-    if (!text) {
-      toast.error("Comment cannot be empty");
-      return;
-    }
+  //   const text = commentText[blogId]?.trim();
+  //   if (!text) {
+  //     toast.error("Comment cannot be empty");
+  //     return;
+  //   }
 
-    try {
-      const response = await fetch(
-        `http://82.29.166.100:4000/api/auth/comment/${blogId}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, text }),
-        }
-      );
-      const result = await response.json();
+  //   try {
+  //     const response = await fetch(
+  //       `http://82.29.166.100:4000/api/auth/comment/${blogId}`,
+  //       {
+  //         method: "POST",
+  //         headers: { "Content-Type": "application/json" },
+  //         body: JSON.stringify({ userId, text }),
+  //       }
+  //     );
+  //     const result = await response.json();
 
-      if (response.ok) {
-        toast.success("Comment added successfully");
-        setCommentText((prev) => ({ ...prev, [blogId]: "" }));
-        fetchBlogs();
-      } else {
-        toast.error(result.message || "Error adding comment");
-        console.error("API Error Response:", result);
-      }
-    } catch (error) {
-      toast.error("Error adding comment");
-      console.error("Comment API Error:", error);
-    }
-  };
+  //     if (response.ok) {
+  //       toast.success("Comment added successfully");
+  //       setCommentText((prev) => ({ ...prev, [blogId]: "" }));
+  //       fetchBlogs();
+  //     } else {
+  //       toast.error(result.message || "Error adding comment");
+  //       console.error("API Error Response:", result);
+  //     }
+  //   } catch (error) {
+  //     toast.error("Error adding comment");
+  //     console.error("Comment API Error:", error);
+  //   }
+  // };
 
   // Reset page to 1 when search or filters change
   useEffect(() => {
@@ -503,7 +503,7 @@ const Tech = () => {
                           </div>
                         </div>
 
-                        <div className="d-flex align-items-center">
+                        {/* <div className="d-flex align-items-center">
                           <input
                             type="text"
                             placeholder="Add a comment..."
@@ -539,7 +539,7 @@ const Tech = () => {
                           >
                             <IoSend size={20} color="#ff9800" />
                           </button>
-                        </div>
+                        </div> */}
                       </div>
 
                       <button

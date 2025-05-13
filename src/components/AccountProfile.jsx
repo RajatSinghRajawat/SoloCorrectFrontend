@@ -265,7 +265,7 @@ const AccountProfile = () => {
                             <div className="col-lg-6 col-sm-12">
                               <div className="form-group">
                                 <label htmlFor="textarea">Bio</label>
-                                <input
+                                <textarea
                                   type="text"
                                   className="form-control shadow-none"
                                   id="textarea"
