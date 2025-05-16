@@ -317,7 +317,7 @@ const Tech = () => {
               }}
             />
 
-            <div style={{ marginBottom: "20px" }}>
+            {/* <div style={{ marginBottom: "20px" }}>
               <select
                 onChange={(e) => {
                   const value = e.target.value;
@@ -340,7 +340,7 @@ const Tech = () => {
                 <option value="recent">Recently Blogs</option>
                 <option value="liked">More Liked Blogs</option>
               </select>
-            </div>
+            </div> */}
 
             <NavLink to="/add/blogs">
               <button className="btn btn-warning">✍️ Create Blog</button>

@@ -5,7 +5,7 @@ import "./blogs.css"; // Importing CSS
 import { CiLink } from "react-icons/ci";
 import { FaFacebookF, FaThreads } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
-import { FaInstagram, FaFacebook, FaTwitter } from "react-icons/fa"; // Import icons
+
 import Demo from "./images/4.png";
 import ABC from "./images/4.png";
 import David from "./images/avtar.jpeg";
@@ -15,6 +15,8 @@ import { IoSend } from "react-icons/io5";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FaShare } from "react-icons/fa";
+import { FaInstagram } from "react-icons/fa";
+
 const Blogs = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -277,9 +279,10 @@ const Blogs = () => {
               </p>
               {/* Social Media & Comments Section */}
               <div className="social-icons">
-                <CiLink className="icon" />
-                <FaFacebookF className="icon" />
-                <FaThreads className="icon" />
+             <a href={data.facebook}>
+               <FaInstagram  className="icon"/>
+
+             </a>
               </div>
               {/* <div className="comment-section">
             <div className="comment-count">81</div>
@@ -287,7 +290,7 @@ const Blogs = () => {
           </div> */}
               <div className="d-flex align-items-center">
                 <input
-                  className="mt-3"
+                  className="mt-3 text-light"
                   type="text"
                   placeholder="Add a comment..."
                   value={commentText[data._id] || ""}
@@ -304,7 +307,7 @@ const Blogs = () => {
                     borderBottom: "2px solid grey",
                     background: "transparent",
                     outline: "none",
-                    color: "#333",
+                    color: "white",
                     fontSize: "0.9rem",
                   }}
                   onKeyPress={(e) => {

@@ -76,9 +76,9 @@ const Home = () => {
                   >
                     {sortedData[0]?.title || "No Featured Blog Available"}
                   </a>
-                  <p className="featured-subtitle">
+                  {/* <p className="featured-subtitle">
                     {sortedData[0]?.travelDescription?.slice(0, 150) || "No description available."}
-                  </p>
+                  </p> */}
                 </div>
               </div>
             </div>
