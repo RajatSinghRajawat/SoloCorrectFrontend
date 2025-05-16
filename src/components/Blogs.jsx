@@ -5,7 +5,6 @@ import "./blogs.css"; // Importing CSS
 import { CiLink } from "react-icons/ci";
 import { FaFacebookF, FaThreads } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
-
 import Demo from "./images/4.png";
 import ABC from "./images/4.png";
 import David from "./images/avtar.jpeg";
@@ -16,6 +15,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FaShare } from "react-icons/fa";
 import { FaInstagram } from "react-icons/fa";
+import { FaEdit } from "react-icons/fa";
+import { FaTrash } from "react-icons/fa";
 
 const Blogs = () => {
   const navigate = useNavigate();
@@ -23,10 +24,13 @@ const Blogs = () => {
   const [data, setData] = useState({});
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState({});
+  const [editingComment, setEditingComment] = useState(null);
+  const [editCommentText, setEditCommentText] = useState("");
 
   // Fetch userId from localStorage
   const userData = JSON.parse(localStorage.getItem("userData"));
   const userId = userData?._id || null;
+
   // Fetch single blog by ID
   const GetSoloblog = async () => {
     try {
@@ -108,6 +112,7 @@ const Blogs = () => {
         toast.success("Comment added successfully");
         setCommentText((prev) => ({ ...prev, [blogId]: "" }));
         GetBlogs();
+        GetComments();
       } else {
         toast.error(result.message || "Error adding comment");
         console.error("API Error Response:", result);
@@ -115,6 +120,74 @@ const Blogs = () => {
     } catch (error) {
       toast.error("Error adding comment");
       console.error("Comment API Error:", error);
+    }
+  };
+
+  const handleEditComment = async (blogId, commentId) => {
+    if (!userId) {
+      toast.error("Please log in to edit a comment");
+      return;
+    }
+
+    const text = editCommentText.trim();
+    if (!text) {
+      toast.error("Comment cannot be empty");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://82.29.166.100:4000/api/auth/comments/${blogId}/${commentId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, text }),
+        }
+      );
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success("Comment updated successfully");
+        setEditingComment(null);
+        setEditCommentText("");
+        GetComments();
+      } else {
+        toast.error(result.message || "Error updating comment");
+        console.error("API Error Response:", result);
+      }
+    } catch (error) {
+      toast.error("Error updating comment");
+      console.error("Edit Comment API Error:", error);
+    }
+  };
+
+  const handleDeleteComment = async (blogId, commentId) => {
+    if (!userId) {
+      toast.error("Please log in to delete a comment");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://82.29.166.100:4000/api/auth/comments/${blogId}/${commentId}`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+        }
+      );
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success("Comment deleted successfully");
+        GetComments();
+      } else {
+        toast.error(result.message || "Error deleting comment");
+        console.error("API Error Response:", result);
+      }
+    } catch (error) {
+      toast.error("Error deleting comment");
+      console.error("Delete Comment API Error:", error);
     }
   };
 
@@ -132,7 +205,7 @@ const Blogs = () => {
       const result = await response.json();
 
       if (result?.blogs) {
-        setData2(result.blogs); // ✅ Correct condition
+        setData2(result.blogs);
         console.log(result?.blogs.img);
       } else {
         console.error("Failed to fetch blogs:", result?.message);
@@ -141,6 +214,7 @@ const Blogs = () => {
       console.error("API Error:", error);
     }
   };
+
   const GetComments = async () => {
     try {
       const requestOptions = {
@@ -163,6 +237,7 @@ const Blogs = () => {
   };
 
   useEffect(() => {
+// /agp: Blogs.jsx
     GetBlogs();
     GetComments();
   }, []);
@@ -170,7 +245,7 @@ const Blogs = () => {
   return (
     <div>
       <Header />
-
+      <ToastContainer />
       <div className="blog-container">
         <div className="image-gallery">
           {Array.isArray(data?.img) && data?.img.length > 0 ? (
@@ -224,14 +299,6 @@ const Blogs = () => {
           <div className="row">
             <div className="col-lg-7">
               <div style={{ display: "flex", alignContent: "center" }}>
-                {/* <img
-                  src={David}
-                  style={{
-                    width: "50px",
-                    height: "50px",
-                    borderRadius: "10px",
-                  }}
-                /> */}
                 <p className="text-white ms-3 mt-2">
                   {" "}
                   <div
@@ -279,15 +346,10 @@ const Blogs = () => {
               </p>
               {/* Social Media & Comments Section */}
               <div className="social-icons">
-             <a href={data.facebook}>
-               <FaInstagram  className="icon"/>
-
-             </a>
+                <a href={data.facebook}>
+                  <FaInstagram className="icon" />
+                </a>
               </div>
-              {/* <div className="comment-section">
-            <div className="comment-count">81</div>
-            <span>Comments (81 New)</span>
-          </div> */}
               <div className="d-flex align-items-center">
                 <input
                   className="mt-3 text-light"
@@ -331,20 +393,91 @@ const Blogs = () => {
                 {comments.length > 0 ? (
                   comments.map((comment, index) => (
                     <div key={index} className="comment">
-                      <p>
-                        <strong>{comment.user?.name || "Unknown User"} </strong>
-                        : {comment.text}
-                      </p>
-                      <small>
-                        {new Date(comment.createdAt).toLocaleString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                          hour: "numeric",
-                          minute: "numeric",
-                          hour12: true,
-                        })}
-                      </small>
+                      {editingComment === comment._id ? (
+                        <div className="d-flex align-items-center">
+                          <input
+                            type="text"
+                            value={editCommentText}
+                            onChange={(e) => setEditCommentText(e.target.value)}
+                            style={{
+                              width: "100%",
+                              padding: "8px",
+                              border: "1px solid grey",
+                              background: "transparent",
+                              color: "white",
+                              fontSize: "0.9rem",
+                            }}
+                          />
+                          <button
+                            onClick={() => handleEditComment(data._id, comment._id)}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              marginLeft: "8px",
+                            }}
+                          >
+                            <IoSend size={20} color="#ff9800" />
+                          </button>
+                          <button
+                            onClick={() => setEditingComment(null)}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              marginLeft: "8px",
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <p>
+                            <strong>{comment.user?.name || "Unknown User"} </strong>
+                            : {comment.text}
+                          </p>
+                          <small>
+                            {new Date(comment.createdAt).toLocaleString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                              hour: "numeric",
+                              minute: "numeric",
+                              hour12: true,
+                            })}
+                          </small>
+                          {comment.user?._id === userId && (
+                            <div className="d-flex gap-2">
+                              <button
+                                onClick={() => {
+                                  setEditingComment(comment._id);
+                                  setEditCommentText(comment.text);
+                                }}
+                                style={{
+                                  background: "none",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  marginLeft: "8px",
+                                }}
+                              >
+                                <FaEdit size={16} color="#ff9800" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteComment(data._id, comment._id)}
+                                style={{
+                                  background: "none",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  marginLeft: "8px",
+                                }}
+                              >
+                                <FaTrash size={16} color="#ff0000" />
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   ))
                 ) : (
