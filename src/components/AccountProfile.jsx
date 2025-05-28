@@ -43,7 +43,9 @@ const AccountProfile = () => {
         throw new Error("User data not found in localStorage");
       }
       const userId = userData.user?._id || userData._id;
-      const response = await fetch(`http://82.29.166.100:4000/api/auth/user/${userId}`);
+      const response = await fetch(
+        `http://82.29.166.100:4000/api/auth/user/${userId}`
+      );
       const result = await response.json();
       if (result.user) {
         setFormData({
@@ -114,14 +116,18 @@ const AccountProfile = () => {
       }
       const userId = userData.user?._id || userData._id;
 
-      const response = await fetch(`http://82.29.166.100:4000/api/auth/update/${userId}`, {
-        method: "PUT",
-        body: formdata,
-      });
+      const response = await fetch(
+        `http://82.29.166.100:4000/api/auth/update/${userId}`,
+        {
+          method: "PUT",
+          body: formdata,
+        }
+      );
 
       const result = await response.json();
       if (response.ok) {
         toast.success(result?.message || "Profile updated successfully");
+        localStorage.setItem("userData", JSON.stringify(result.user));
         await fetchUserData();
         handleClose();
       } else {
@@ -213,19 +219,28 @@ const AccountProfile = () => {
                       <div className="col-lg-3">
                         <div>
                           <h4 className="profile1">Profile</h4>
-                          <h6 className="subscribe text-dark">Subscription & Billing</h6>
+                          <h6 className="subscribe text-dark">
+                            Subscription & Billing
+                          </h6>
                         </div>
                       </div>
                       <div className="col-lg-6">
                         <div className="account-details">
                           <div
                             className="mb-4"
-                            style={{ display: "flex", justifyContent: "space-between" }}
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                            }}
                           >
                             <h2>Hi there!</h2>
                             <button
                               onClick={handleShow}
-                              style={{ display: "flex", alignItems: "center", gap: "5px" }}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "5px",
+                              }}
                               className="edit-button"
                             >
                               <CiEdit /> Edit
@@ -278,7 +293,9 @@ const AccountProfile = () => {
                             </div>
                             <div className="col-lg-6 col-sm-12">
                               <div className="form-group">
-                                <label htmlFor="committingName">Commenting Name</label>
+                                <label htmlFor="committingName">
+                                  Commenting Name
+                                </label>
                                 <input
                                   type="text"
                                   className="form-control shadow-none"
@@ -315,7 +332,10 @@ const AccountProfile = () => {
                                   Select Country
                                 </option>
                                 {Country.getAllCountries().map((country) => (
-                                  <option key={country.isoCode} value={country.isoCode}>
+                                  <option
+                                    key={country.isoCode}
+                                    value={country.isoCode}
+                                  >
                                     {country.name}
                                   </option>
                                 ))}
@@ -391,7 +411,9 @@ const AccountProfile = () => {
                         <div className="row">
                           <div className="col-lg-6 col-sm-12">
                             <div className="form-group">
-                              <label htmlFor="foodPreference">Food Preference</label>
+                              <label htmlFor="foodPreference">
+                                Food Preference
+                              </label>
                               <select
                                 className="form-control shadow-none"
                                 id="foodPreference"
@@ -439,7 +461,12 @@ const AccountProfile = () => {
           </div>
         </div>
 
-        <Modal className="text-black" show={show} onHide={handleClose} animation={false}>
+        <Modal
+          className="text-black"
+          show={show}
+          onHide={handleClose}
+          animation={false}
+        >
           <Modal.Header closeButton>
             <Modal.Title>Edit Profile</Modal.Title>
           </Modal.Header>
@@ -606,7 +633,11 @@ const AccountProfile = () => {
                 rows={4}
               />
             </div>
-            <Button variant="primary" onClick={UpdateProfile} disabled={loading}>
+            <Button
+              variant="primary"
+              onClick={UpdateProfile}
+              disabled={loading}
+            >
               {loading ? "Updating..." : "Update Profile"}
             </Button>
           </Modal.Body>

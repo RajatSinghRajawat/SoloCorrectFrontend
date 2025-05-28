@@ -351,7 +351,7 @@ const Tech = () => {
         <div className="row g-4">
           {data.length > 0 ? (
             data.map((res) => {
-              const shareUrl = `http://localhost:3000/blog/${res._id}`;
+              const shareUrl = `http://82.29.166.100:4000/blog/${res._id}`;
               return (
                 <div key={res._id} className="col-lg-4 col-md-6 col-sm-12">
                   <div className="card blog-card shadow-lg border-0 rounded-4">

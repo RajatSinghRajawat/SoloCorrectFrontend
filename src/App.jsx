@@ -16,6 +16,8 @@ import AddEvents from "./components/AddEvents";
 import CityStates from "./components/CityStates";
 import ForgotPasswordSendOtp from "./components/ForgotPasswordSendOtp";
 import Wonderlust from "./components/Wonderlust";
+import EventsById from "./components/EventsById";
+import AllEvents from "./components/AllEvents";
 // import ForgotVerifyPassword from "./components/ForgotVerifyPassword";
 
 const myData = createContext();
@@ -31,6 +33,7 @@ const App = () => {
           <Route element={<ProtectedRoute />}>
             <Route path="/profile" element={<AccountProfile />} />
             <Route path="/allblogs" element={<AllBlogs />} />
+            <Route path="/allevents" element={<AllEvents />} />
             <Route path="/add/blogs" element={<AddBlogs />} />
             <Route path="/add/Events" element={<AddEvents />} />
           </Route>
@@ -38,6 +41,7 @@ const App = () => {
           <Route path="/blogs" element={<Tech />} />
           <Route path="/Wanderlist" element={<Wonderlust />} />
           <Route path="/events" element={<Events />} />
+          <Route path="/events/:id" element={<EventsById />} />
           <Route path="/register" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
           <Route path="/city" element={<CityStates />} />

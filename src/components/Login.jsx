@@ -77,7 +77,7 @@ const Login = () => {
         body: formData,
       });
       const result = await response.json();
-      if (response.ok) {
+      if (response) {
         toast.success("Registration successful!");
         localStorage.setItem("userData", JSON.stringify(result.user));
         localStorage.setItem("token", JSON.stringify(result.token));

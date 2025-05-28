@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Select from "react-select";
@@ -9,14 +9,14 @@ import "./AddEvents.css";
 const AddEvents = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-
+  const [user, setuser] = useState();
   const [formData, setFormData] = useState({
     destination: "",
     travelBuddyAge: "",
     startDate: "",
     endDate: "",
     transport: "",
-    interests: "",
+    interests: [],
     budget: "",
     travelAuthor: "",
     travelDescription: "",
@@ -30,8 +30,14 @@ const AddEvents = () => {
   useEffect(() => {
     const userInfo = localStorage.getItem("userData");
     const userData = userInfo ? JSON.parse(userInfo) : null;
+    console.log(userData.name, "userData");
+
     if (userData && userData._id) {
-      setFormData((prev) => ({ ...prev, creator: userData._id }));
+      setFormData((prev) => ({
+        ...prev,
+        creator: userData._id,
+        travelAuthor: userData.name,
+      }));
     } else {
       toast.error("User not logged in. Please log in to create an event.");
       navigate("/login");
@@ -50,6 +56,16 @@ const AddEvents = () => {
       }))
     : [];
 
+  const interestOptions = [
+    { value: "Mountains", label: "Mountains" },
+    { value: "Trekking", label: "Trekking" },
+    { value: "Beaches", label: "Beaches" },
+    { value: "Wildlife", label: "Wildlife" },
+    { value: "City Tour", label: "City Tour" },
+    { value: "Adventure Sports", label: "Adventure Sports" },
+    { value: "Cultural", label: "Cultural" },
+  ];
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -60,6 +76,10 @@ const AddEvents = () => {
 
   const handleCityChange = (selectedCity) => {
     setFormData({ ...formData, city: selectedCity });
+  };
+
+  const handleInterestsChange = (selectedInterests) => {
+    setFormData({ ...formData, interests: selectedInterests });
   };
 
   const handleImageChange = (e) => {
@@ -109,15 +129,23 @@ const AddEvents = () => {
           formdata.append("States", formData.state?.label || "");
         } else if (key === "city") {
           formdata.append("City", formData.city?.label || "");
+        } else if (key === "interests") {
+          formdata.append(
+            "interests",
+            formData.interests.map((i) => i.value).join(",")
+          );
         } else {
           formdata.append(key, formData[key]);
         }
       });
 
-      const response = await fetch("http://82.29.166.100:4000/api/auth/addEvents", {
-        method: "POST",
-        body: formdata,
-      });
+      const response = await fetch(
+        "http://82.29.166.100:4000/api/auth/addEvents",
+        {
+          method: "POST",
+          body: formdata,
+        }
+      );
 
       const result = await response.json();
 
@@ -134,9 +162,9 @@ const AddEvents = () => {
           startDate: "",
           endDate: "",
           transport: "",
-          interests: "",
+          interests: [],
           budget: "",
-          travelAuthor: "",
+          travelAuthor: formData.travelAuthor,
           travelDescription: "",
           travelBuddyGender: "",
           state: null,
@@ -176,12 +204,20 @@ const AddEvents = () => {
         pauseOnHover
         theme="light"
       />
+      <div className="d-flex justify-content-between">
+        <div>
+          <button className="back-button" onClick={() => navigate(-1)}>
+            ← Back
+          </button>
+          <h2 className="event-title">Add New Event</h2>
+        </div>
 
-      <button className="back-button" onClick={() => navigate(-1)}>
-        ← Back
-      </button>
-      <h2 className="event-title">Add New Event</h2>
-
+        <div>
+          <NavLink to="/allevents">
+            <button className="submit-button">All Events</button>
+          </NavLink>
+        </div>
+      </div>
       <div className="input-wrapper">
         <label className="input-label">Destination</label>
         <input
@@ -202,7 +238,7 @@ const AddEvents = () => {
           value={formData.travelAuthor}
           onChange={handleChange}
           className="input-field"
-          required
+          readOnly
         />
       </div>
 
@@ -306,27 +342,15 @@ const AddEvents = () => {
 
       <div className="input-wrapper">
         <label className="input-label">Interest</label>
-        <select
-          name="interests"
+        <Select
+          isMulti
+          options={interestOptions}
           value={formData.interests}
-          onChange={handleChange}
-          className="select-field"
-        >
-          <option value="">Select Interest</option>
-          {[
-            "Mountains",
-            "Trekking",
-            "Beaches",
-            "Wildlife",
-            "City Tour",
-            "Adventure Sports",
-            "Cultural",
-          ].map((int) => (
-            <option key={int} value={int}>
-              {int}
-            </option>
-          ))}
-        </select>
+          onChange={handleInterestsChange}
+          placeholder="Select Interests"
+          className="react-select-container"
+          classNamePrefix="react-select"
+        />
       </div>
 
       <div className="input-wrapper">
