@@ -6,16 +6,17 @@ import { State, City } from "country-state-city";
 import Header from "./Header";
 import "./Listings.css";
 
-const Listings = () => {
+const Events = () => {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 9;
-
   const [selectedState, setSelectedState] = useState(null);
   const [selectedCity, setSelectedCity] = useState(null);
   const [selectedListing, setSelectedListing] = useState(null);
+  const [sortOption, setSortOption] = useState(null);
+  const navigate = useNavigate();
 
   const states = State.getStatesOfCountry("IN").map((state) => ({
     value: state.isoCode,
@@ -29,27 +30,34 @@ const Listings = () => {
       }))
     : [];
 
+  const sortOptions = [
+    { value: "mostLiked", label: "Most Liked" },
+    { value: "lessLiked", label: "Less Liked" },
+  ];
+
   const fetchEvents = async () => {
     setLoading(true);
     const stateParam = selectedState ? `&States=${selectedState.label}` : "";
     const cityParam = selectedCity ? `&City=${selectedCity.value}` : "";
-    const sortParam = "&sort=createdAt:desc"; // Ensure newest events first
+    const sortParam = sortOption
+      ? sortOption.value === "mostLiked"
+        ? "&sort=likes:desc,createdAt:desc"
+        : "&sort=likes:asc,createdAt:desc"
+      : "&sort=createdAt:desc";
+    const mostLikedParam =
+      sortOption?.value === "mostLiked" ? "&mostLiked=true" : "";
 
     try {
       const response = await fetch(
-        `http://82.29.166.100:4000/api/auth/getEvents?page=${page}&limit=${limit}${stateParam}${cityParam}${sortParam}`
+        `http://82.29.166.100:4000/api/auth/getEvents?page=${page}&limit=${limit}${stateParam}${cityParam}${mostLikedParam}${sortParam}`
       );
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       const result = await response.json();
-      console.log("API Response:", result); // Debug: Log the full response
+      console.log("API Response:", result);
       if (Array.isArray(result.travel)) {
-        // Sort on frontend as a fallback to ensure newest first
-        const sortedListings = result.travel.sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
-        setListings(sortedListings);
+        setListings(result.travel);
         setTotalPages(result.pagination?.totalPages || 1);
       } else {
         console.warn("No travel array in response:", result);
@@ -113,7 +121,156 @@ const Listings = () => {
 
   useEffect(() => {
     fetchEvents();
-  }, [page, selectedState, selectedCity]);
+  }, [page, selectedState, selectedCity, sortOption]);
+
+  // Define ListingCard component within Events
+  const ListingCard = ({ listing }) => {
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [joining, setJoining] = useState(false);
+
+    const nextImage = (e) => {
+      e.stopPropagation();
+      setCurrentImageIndex((prevIndex) =>
+        prevIndex === listing.img.length - 1 ? 0 : prevIndex + 1
+      );
+    };
+
+    const prevImage = (e) => {
+      e.stopPropagation();
+      setCurrentImageIndex((prevIndex) =>
+        prevIndex === 0 ? listing.img.length - 1 : prevIndex - 1
+      );
+    };
+
+    const handleCityClick = () => {
+      setSelectedListing(listing);
+      const modal = new window.bootstrap.Modal(
+        document.getElementById("eventModal")
+      );
+      modal.show();
+    };
+
+    const handleJoin = () => {
+      const userId = JSON.parse(localStorage.getItem("userData"));
+      if (!userId?._id) {
+        alert("Please log in to join the event.");
+        return;
+      }
+      setJoining(true);
+      sendmessagetocreator(listing._id, userId._id).finally(() =>
+        setJoining(false)
+      );
+    };
+
+    return (
+      <div className="container my-4">
+        <div className="row">
+          <div className="col-md-6 col-lg-4 event-card  ">
+            <div
+              className=""
+              style={{ cursor: "default"  }}
+              key={listing._id}
+            >
+              <div className="image-container position-relative">
+                {listing.img && listing.img.length > 0 ? (
+                  <>
+                    <img
+                      src={`http://82.29.166.100:4000/${listing.img[currentImageIndex]}`}
+                      alt="Event"
+                      className="card-img-top"
+                    />
+                    {listing.img.length > 1 && (
+                      <>
+                        <button
+                          className="btn btn-sm btn-light position-absolute top-50 start-0 translate-middle-y"
+                          onClick={prevImage}
+                        >
+                          ◀
+                        </button>
+                        <button
+                          className="btn btn-sm btn-light position-absolute top-50 end-0 translate-middle-y"
+                          onClick={nextImage}
+                        >
+                          ▶
+                        </button>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-center">No image available</p>
+                )}
+              </div>
+
+              <div className="card-body">
+                <div className="event-date mb-2">
+                  <FaCalendarAlt />{" "}
+                  {new Date(listing.startDate).toLocaleDateString()} -{" "}
+                  {new Date(listing.endDate).toLocaleDateString()}
+                </div>
+
+                <h5
+                  className="card-title"
+                  style={{ cursor: "pointer" }}
+                  onClick={handleCityClick}
+                >
+                  {listing.City}
+                </h5>
+
+                <div className="event-location mb-2">
+                  <span className="state-name">🏙️ {listing.States}</span> |{" "}
+                  <span className="city-name">India</span>
+                </div>
+
+                <p
+                  className="card-text text-truncate"
+                  style={{
+                    width: "100%",
+                    maxWidth: "100%",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {listing.travelDescription}
+                </p>
+
+                <div className="event-footer d-flex justify-content-between align-items-center mt-3">
+                  <div className="event-host">
+                    By {listing.travelAuthor || "Unknown"}
+                  </div>
+                  <button
+                    className="btn btn-success"
+                    onClick={handleJoin}
+                    disabled={joining}
+                  >
+                    {joining ? (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                        Joining...
+                      </>
+                    ) : (
+                      "Join"
+                    )}
+                  </button>
+                </div>
+
+                <button
+                  className="btn btn-primary mt-3 w-100"
+                  onClick={() => navigate(`/events/${listing._id}`)}
+                >
+                  Read More
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -226,6 +383,55 @@ const Listings = () => {
               }}
             />
 
+            <Select
+              className="mt-3 sort-select"
+              options={sortOptions}
+              value={sortOption}
+              onChange={(option) => {
+                setSortOption(option);
+                setPage(1);
+              }}
+              placeholder="Sort by..."
+              isClearable
+              styles={{
+                container: (base) => ({
+                  ...base,
+                  width: "250px",
+                  borderRadius: "8px",
+                }),
+                control: (base, state) => ({
+                  ...base,
+                  backgroundColor: "#1e1e1e",
+                  border: state.isFocused
+                    ? "2px solid #ff9800"
+                    : "1px solid #444",
+                  boxShadow: state.isFocused
+                    ? "0 0 5px rgba(255,152,0,0.5)"
+                    : "none",
+                  "&:hover": { border: "2px solid #ff9800" },
+                }),
+                singleValue: (base) => ({
+                  ...base,
+                  color: "#fff",
+                }),
+                menu: (base) => ({
+                  ...base,
+                  backgroundColor: "#2a2a2a",
+                  borderRadius: "6px",
+                }),
+                option: (base, { isFocused, isSelected }) => ({
+                  ...base,
+                  backgroundColor: isSelected
+                    ? "#ff9800"
+                    : isFocused
+                    ? "#333"
+                    : "#2a2a2a",
+                  color: isSelected ? "#000" : "#fff",
+                  cursor: "pointer",
+                }),
+              }}
+            />
+
             <NavLink to="/add/Events" className="mt-3">
               <button className="btn btn-primary create-blog-btn">
                 ✍️ Create Events
@@ -234,32 +440,33 @@ const Listings = () => {
           </div>
         </div>
 
-        <div className="listings-container">
-          {loading ? (
-            <div className="text-center">
-              <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">Loading...</span>
+        <div className="container my-4">
+          <div className="row">
+            {loading ? (
+              <div className="col-12 text-center">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                <p>Loading events...</p>
               </div>
-              <p>Loading events...</p>
-            </div>
-          ) : listings.length > 0 ? (
-            listings.map((listing, index) => {
-              return (
-                <ListingCard
-                  key={listing._id} // Use _id for unique key
-                  myId={listing._id}
-                  listing={listing}
-                  setSelectedListing={setSelectedListing}
-                  sendmessagetocreator={sendmessagetocreator}
-                />
-              );
-            })
-          ) : (
-            <p>
-              No events found. Try adjusting your filters or creating a new
-              event.
-            </p>
-          )}
+            ) : listings.length > 0 ? (
+              listings.map((listing) => (
+                <div
+                  className="col-12 col-md-6 col-lg-4 mb-4"
+                  key={listing._id}
+                >
+                  <ListingCard listing={listing} />
+                </div>
+              ))
+            ) : (
+              <div className="col-12 text-center">
+                <p>
+                  No events found. Try adjusting your filters or creating a new
+                  event.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="pagination">
@@ -402,7 +609,9 @@ const Listings = () => {
                     type="button"
                     className="btn btn-primary"
                     onClick={() => {
-                      const userId = JSON.parse(localStorage.getItem("userData"));
+                      const userId = JSON.parse(
+                        localStorage.getItem("userData")
+                      );
                       if (!userId?._id) {
                         alert("Please log in to join the event.");
                         return;
@@ -422,127 +631,4 @@ const Listings = () => {
   );
 };
 
-const ListingCard = ({
-  myId,
-  listing,
-  setSelectedListing,
-  sendmessagetocreator,
-}) => {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [joining, setJoining] = useState(false); // Moved joining state here
-  const navigate = useNavigate();
-
-  const nextImage = (e) => {
-    e.stopPropagation();
-    setCurrentImageIndex((prevIndex) =>
-      prevIndex === listing.img.length - 1 ? 0 : prevIndex + 1
-    );
-  };
-
-  const prevImage = (e) => {
-    e.stopPropagation();
-    setCurrentImageIndex((prevIndex) =>
-      prevIndex === 0 ? listing.img.length - 1 : prevIndex - 1
-    );
-  };
-
-  const handleCityClick = () => {
-    setSelectedListing(listing);
-    const modal = new window.bootstrap.Modal(
-      document.getElementById("eventModal")
-    );
-    modal.show();
-  };
-
-  const handleJoin = () => {
-    const userId = JSON.parse(localStorage.getItem("userData"));
-    if (!userId?._id) {
-      alert("Please log in to join the event.");
-      return;
-    }
-    setJoining(true); // Set joining state for this specific card
-    sendmessagetocreator(myId, userId._id).finally(() => setJoining(false)); // Reset joining state after completion
-  };
-
-  return (
-    <div className="event-card" style={{ cursor: "default" }}>
-      <div className="image-container">
-        {listing.img && listing.img.length > 0 ? (
-          <>
-            <img
-              src={`http://82.29.166.100:4000/${listing.img[currentImageIndex]}`}
-              alt="Event"
-            />
-            {listing.img.length > 1 && (
-              <>
-                <button className="prev-btn" onClick={prevImage}>
-                  ◀
-                </button>
-                <button className="next-btn" onClick={nextImage}>
-                  ▶
-                </button>
-              </>
-            )}
-          </>
-        ) : (
-          <p>No image available</p>
-        )}
-      </div>
-
-      <div className="event-date">
-        <FaCalendarAlt /> {new Date(listing.startDate).toLocaleDateString()} -{" "}
-        {new Date(listing.endDate).toLocaleDateString()}
-      </div>
-
-      <h3 style={{ cursor: "pointer" }} onClick={handleCityClick}>
-        {listing.City}
-      </h3>
-
-      <div className="event-location">
-        <span className="state-name">🏙️ {listing.States}</span> |{" "}
-        <span className="city-name">India</span>
-      </div>
-
-      <p
-        className="event-description text-truncate"
-        style={{
-          width: "100%",
-          maxWidth: "28rem",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-        }}
-      >
-        {listing.travelDescription}
-      </p>
-
-      <div className="event-footer">
-        <div className="event-host">By {listing.travelAuthor || "Unknown"}</div>
-        <div className="event-actions">
-          <button className="join-btn" onClick={handleJoin} disabled={joining}>
-            {joining ? (
-              <>
-                <span
-                  className="spinner-border spinner-border-sm me-2"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
-                Joining...
-              </>
-            ) : (
-              "Join"
-            )}
-          </button>
-        </div>
-      </div>
-      <button
-        className="btn btn-primary mt-3 w-100"
-        onClick={() => navigate(`/events/${listing._id}`)}
-      >
-        Read More
-      </button>
-    </div>
-  );
-};
-
-export default Listings;
+export default Events;

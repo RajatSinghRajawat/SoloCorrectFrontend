@@ -4,7 +4,7 @@ import Header from "./Header";
 import "./blogs.css"; // Importing CSS
 import { CiLink } from "react-icons/ci";
 import { FaFacebookF, FaThreads } from "react-icons/fa6";
-import { useNavigate, useParams } from "react-router-dom";
+import { NavLink, useNavigate, useParams } from "react-router-dom";
 import Demo from "./images/4.png";
 import ABC from "./images/4.png";
 import David from "./images/avtar.jpeg";
@@ -299,7 +299,10 @@ const Blogs = () => {
               </div>
               <p className="blog-author d-flex align-items-center gap-2">
                 by{" "}
-                <span className="author-name">{data.author || "!Author"}</span>{" "}
+               
+                  <span className="author-name">{data.author || "!Author"}</span>
+               
+                {" "}
                 <div className="d-flex align-items-center">
                   <button
                     onClick={() => handleLike(data._id)}

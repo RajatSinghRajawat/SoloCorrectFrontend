@@ -275,8 +275,10 @@ const EventsById = () => {
           )}
         </div>
         <div className="d-flex align-items-center">
-      by{" "}
-                 <span className="author-name ps-2 pe-1">{data.travelAuthor || "!Author"}</span>{" "}
+          by{" "}
+          <span className="author-name ps-2 pe-1">
+            {data.travelAuthor || "!Author"}
+          </span>{" "}
           <button
             onClick={handleLike}
             style={{
@@ -306,12 +308,11 @@ const EventsById = () => {
         <div className="event-content">
           <div className="py-4">
             <h5 className="card-title text-light fw-bold">
-              {data?.City || "Unknown City"} <br />{data?.States || "No description available"}
+              {data?.City || "Unknown City"} <br />
+              {data?.States || "No description available"}
             </h5>
           </div>
-          <p className="event-description">
-            
-          </p>
+          <p className="event-description"></p>
           <hr className="divider" />
         </div>
         <div className="event-content">
@@ -327,7 +328,6 @@ const EventsById = () => {
           <p className="event-description">
             By {data?.transport || "No transport details available"}
           </p>
-          
         </div>
       </div>
       <div
@@ -410,13 +410,24 @@ const EventsById = () => {
                     onClick={() => setEditingComment(null)}
                     aria-label="Cancel editing comment"
                     style={{
-                      background: "transparent",
+                      backgroundColor: "transparent",
                       border: "none",
                       color: "#ffffff",
                       cursor: "pointer",
+                      fontSize: "16px",
+                      fontWeight: "bold",
+                      padding: "4px 8px",
+                      borderRadius: "4px",
+                      transition: "background-color 0.3s ease",
                     }}
+                    onMouseEnter={(e) =>
+                      (e.target.style.backgroundColor = "rgba(255,255,255,0.1)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.target.style.backgroundColor = "transparent")
+                    }
                   >
-                    Cancel
+                    ×
                   </button>
                 </div>
               ) : (

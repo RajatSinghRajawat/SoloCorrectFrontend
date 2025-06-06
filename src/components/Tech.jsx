@@ -7,9 +7,6 @@ import Select from "react-select";
 import { State, City } from "country-state-city";
 import { CiHeart } from "react-icons/ci";
 import { FaHeart } from "react-icons/fa";
-import { IoSend } from "react-icons/io5";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { FaShare } from "react-icons/fa";
 import {
   FacebookShareButton,
@@ -21,6 +18,8 @@ import {
   WhatsappIcon,
   LinkedinIcon,
 } from "react-share";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Tech = () => {
   const [data, setData] = useState([]);
@@ -29,8 +28,10 @@ const Tech = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState({});
-  const [searchTitle, setSearchTitle] = useState("");
-  // const [commentText, setCommentText] = useState({});
+  const [searchTitle, setSearchTitle] = useState(""); // Fixed: Initialize as string
+  const [showShareOptions, setShowShareOptions] = useState({});
+  const [selectedState, setSelectedState] = useState(null);
+  const [selectedCity, setSelectedCity] = useState(null);
 
   // Fetch userId from localStorage
   const userData = JSON.parse(localStorage.getItem("userData"));
@@ -38,7 +39,6 @@ const Tech = () => {
 
   const fetchBlogs = async () => {
     try {
-      // Encode query parameters to handle special characters
       const query = new URLSearchParams({
         page,
         limit: 9,
@@ -48,32 +48,48 @@ const Tech = () => {
       }).toString();
 
       const response = await fetch(
-        `http://82.29.166.100:4000/api/auth/getblogs?${query}`
+        `http://82.29.166.100:4000/api/auth/getblogs?${query}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
       const result = await response.json();
       console.log("API Response:", result);
 
-      if (response.ok && result.blogs) {
+      if (result.blogs && Array.isArray(result.blogs)) {
         setData(result.blogs);
-        setTotalPages(result.totalPages || 1); // Ensure totalPages is set
+        setTotalPages(result.totalPages || 1);
         setCurrentImageIndex(
           result.blogs.reduce((acc, blog) => {
             if (!blog._id) {
-              console.error("Missing _id in blog:", blog);
+              console.warn("Missing _id in blog:", blog);
               return acc;
             }
             return { ...acc, [blog._id]: 0 };
           }, {})
         );
+        setShowShareOptions(
+          result.blogs.reduce((acc, blog) => {
+            if (!blog._id) return acc;
+            return { ...acc, [blog._id]: false };
+          }, {})
+        );
       } else {
-        console.error("Failed to fetch blogs:", result.message);
+        console.error("Invalid API response format:", result);
         toast.error(result.message || "Failed to fetch blogs");
         setData([]);
         setTotalPages(1);
       }
     } catch (error) {
-      console.error("API Error:", error);
-      toast.error("Error fetching blogs");
+      console.error("Fetch Blogs Error:", error.message);
+      toast.error(`Error fetching blogs: ${error.message}`);
       setData([]);
       setTotalPages(1);
     }
@@ -94,64 +110,24 @@ const Tech = () => {
           body: JSON.stringify({ userId }),
         }
       );
-      const result = await response.json();
 
-      if (response.ok) {
-        toast.success("Like updated successfully");
-        fetchBlogs(); // Refresh blogs to update like count
-      } else {
-        toast.error(result.message || "Error updating like");
-        console.error("API Error Response:", result);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
+
+      const result = await response.json();
+      toast.success("Like updated successfully");
+      fetchBlogs(); // Refresh blogs to update like count
     } catch (error) {
-      toast.error("Error updating like");
-      console.error("Like API Error:", error);
+      console.error("Like API Error:", error.message);
+      toast.error(`Error updating like: ${error.message}`);
     }
   };
 
-  // const handleComment = async (blogId) => {
-  //   if (!userId) {
-  //     toast.error("Please log in to comment");
-  //     return;
-  //   }
-
-  //   const text = commentText[blogId]?.trim();
-  //   if (!text) {
-  //     toast.error("Comment cannot be empty");
-  //     return;
-  //   }
-
-  //   try {
-  //     const response = await fetch(
-  //       `http://82.29.166.100:4000/api/auth/comment/${blogId}`,
-  //       {
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify({ userId, text }),
-  //       }
-  //     );
-  //     const result = await response.json();
-
-  //     if (response.ok) {
-  //       toast.success("Comment added successfully");
-  //       setCommentText((prev) => ({ ...prev, [blogId]: "" }));
-  //       fetchBlogs();
-  //     } else {
-  //       toast.error(result.message || "Error adding comment");
-  //       console.error("API Error Response:", result);
-  //     }
-  //   } catch (error) {
-  //     toast.error("Error adding comment");
-  //     console.error("Comment API Error:", error);
-  //   }
-  // };
-
-  // Reset page to 1 when search or filters change
   useEffect(() => {
     setPage(1); // Reset page when filters change
   }, [myState, searchTitle]);
 
-  // Fetch blogs when page or filters change
   useEffect(() => {
     fetchBlogs();
   }, [page, myState, searchTitle]);
@@ -170,9 +146,6 @@ const Tech = () => {
     }));
   };
 
-  const [selectedState, setSelectedState] = useState(null);
-  const [selectedCity, setSelectedCity] = useState(null);
-
   const states = State.getStatesOfCountry("IN").map((state) => ({
     value: state.isoCode,
     label: state.name,
@@ -184,11 +157,14 @@ const Tech = () => {
         label: city.name,
       }))
     : [];
-  const [showShareOptions, setShowShareOptions] = useState(false);
 
-  const toggleShare = () => {
-    setShowShareOptions((prev) => !prev);
+  const toggleShare = (blogId) => {
+    setShowShareOptions((prev) => ({
+      ...prev,
+      [blogId]: !prev[blogId],
+    }));
   };
+
   return (
     <>
       <Header />
@@ -276,7 +252,7 @@ const Tech = () => {
               onChange={(city) => {
                 setSelectedCity(city);
                 setMyState((prev) => ({ ...prev, city: city.label }));
-              }}
+ âg                }}
               placeholder="Select a city..."
               isDisabled={!selectedState}
               styles={{
@@ -317,31 +293,6 @@ const Tech = () => {
               }}
             />
 
-            {/* <div style={{ marginBottom: "20px" }}>
-              <select
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === "recent") {
-                    fetchBlogs(); // Adjust logic to fetch recent blogs
-                  } else if (value === "liked") {
-                    fetchBlogs(); // Adjust logic to fetch liked blogs
-                  }
-                }}
-                style={{
-                  padding: "7px",
-                  borderRadius: "5px",
-                  border: "1px solid #444",
-                  backgroundColor: "#1e1e1e",
-                  color: "grey",
-                  cursor: "pointer",
-                }}
-              >
-                <option value="recent">Sort By</option>
-                <option value="recent">Recently Blogs</option>
-                <option value="liked">More Liked Blogs</option>
-              </select>
-            </div> */}
-
             <NavLink to="/add/blogs">
               <button className="btn btn-warning">✍️ Create Blog</button>
             </NavLink>
@@ -358,13 +309,17 @@ const Tech = () => {
                     <div className="image-container position-relative">
                       <img
                         src={`http://82.29.166.100:4000/${
-                          res.img[currentImageIndex[res._id] || 0]
+                          res.img[currentImageIndex[res._id] || 0] || ""
                         }`}
                         alt={`Image ${currentImageIndex[res._id] + 1 || 1}`}
                         className="card-img-top rounded-top-4"
                         style={{ height: "250px", objectFit: "cover" }}
+                        onError={(e) => {
+                          e.target.src = "/placeholder-image.jpg"; // Fallback image
+                          console.warn(`Failed to load image for blog ${res._id}`);
+                        }}
                       />
-                      {res.img.length > 1 && (
+                      {res.img?.length > 1 && (
                         <>
                           <button
                             className="prev-btn"
@@ -406,20 +361,17 @@ const Tech = () => {
                             {res.likes?.length || 0} Likes
                           </span>
                           <div
-                          className="ms-2"
+                            className="ms-2"
                             style={{
                               position: "relative",
                               display: "inline-block",
                             }}
                           >
-                            {/* Clickable Share Icon */}
                             <FaShare
                               style={{ cursor: "pointer", fontSize: "20px" }}
-                              onClick={toggleShare}
+                              onClick={() => toggleShare(res._id)}
                             />
-
-                            {/* Share Options (show on click) */}
-                            {showShareOptions && (
+                            {showShareOptions[res._id] && (
                               <div
                                 className="share-buttons"
                                 style={{
@@ -440,28 +392,62 @@ const Tech = () => {
                                 <label style={{ fontWeight: "bold" }}>
                                   Share this blog:
                                 </label>
-                                <div style={{ display: "flex", gap: "10px" }}>
+                                <a
+                                  href={shareUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{
+                                    color: "#007bff",
+                                    textDecoration: "underline",
+                                    wordBreak: "break-all",
+                                    fontSize: "14px",
+                                  }}
+                                >
+                                  {shareUrl}
+                                </a>
+                                <button
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(shareUrl);
+                                    toast.success("Link copied to clipboard!");
+                                  }}
+                                  style={{
+                                    padding: "6px 10px",
+                                    fontSize: "14px",
+                                    cursor: "pointer",
+                                    background: "#f0f0f0",
+                                    border: "1px solid #ccc",
+                                    borderRadius: "5px",
+                                    marginTop: "5px",
+                                    width: "fit-content",
+                                  }}
+                                >
+                                  Copy Link
+                                </button>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    gap: "10px",
+                                    marginTop: "10px",
+                                  }}
+                                >
                                   <FacebookShareButton
                                     url={shareUrl}
                                     quote={"Check out this blog!"}
                                   >
                                     <FacebookIcon size={32} round />
                                   </FacebookShareButton>
-
                                   <TwitterShareButton
                                     url={shareUrl}
                                     title={"Check out this blog!"}
                                   >
                                     <TwitterIcon size={32} round />
                                   </TwitterShareButton>
-
                                   <WhatsappShareButton
                                     url={shareUrl}
                                     title={"Check out this blog!"}
                                   >
                                     <WhatsappIcon size={32} round />
                                   </WhatsappShareButton>
-
                                   <LinkedinShareButton url={shareUrl}>
                                     <LinkedinIcon size={32} round />
                                   </LinkedinShareButton>
@@ -471,17 +457,17 @@ const Tech = () => {
                           </div>
                         </div>
                         <h5 className="card-title fw-bold text-truncate">
-                          {res.title}
+                          {res.title || "Untitled"}
                         </h5>
                         <p className="card-text text-muted text-truncate">
-                          {res.shortdescription}
+                          {res.shortdescription || "No description available"}
                         </p>
                         <div
                           className="d-flex text-muted"
                           style={{ textTransform: "capitalize" }}
                         >
-                          <p className="me-2">{res.States},</p>
-                          <p>{res.City}</p>
+                          <p className="me-2">{res.States || "N/A"},</p>
+                          <p>{res.City || "N/A"}</p>
                         </div>
                         <div className="d-flex justify-content-between">
                           <div>
@@ -489,7 +475,7 @@ const Tech = () => {
                               className="text-muted text-end mt-2"
                               style={{ fontSize: "0.9rem" }}
                             >
-                              By : {res.author || " !author"}
+                              By: {res.author || "Unknown"}
                             </p>
                           </div>
                           <div>
@@ -498,50 +484,13 @@ const Tech = () => {
                               style={{ fontSize: "0.9rem" }}
                             >
                               Created:{" "}
-                              {new Date(res.createdAt).toLocaleDateString()}
+                              {res.createdAt
+                                ? new Date(res.createdAt).toLocaleDateString()
+                                : "N/A"}
                             </p>
                           </div>
                         </div>
-
-                        {/* <div className="d-flex align-items-center">
-                          <input
-                            type="text"
-                            placeholder="Add a comment..."
-                            value={commentText[res._id] || ""}
-                            onChange={(e) =>
-                              setCommentText((prev) => ({
-                                ...prev,
-                                [res._id]: e.target.value,
-                              }))
-                            }
-                            style={{
-                              width: "100%",
-                              padding: "8px 0",
-                              border: "none",
-                              borderBottom: "2px solid #000",
-                              background: "transparent",
-                              outline: "none",
-                              color: "#333",
-                              fontSize: "0.9rem",
-                            }}
-                            onKeyPress={(e) => {
-                              if (e.key === "Enter") handleComment(res._id);
-                            }}
-                          />
-                          <button
-                            onClick={() => handleComment(res._id)}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              cursor: "pointer",
-                              marginLeft: "8px",
-                            }}
-                          >
-                            <IoSend size={20} color="#ff9800" />
-                          </button>
-                        </div> */}
                       </div>
-
                       <button
                         className="btn btn-primary mt-3 w-100"
                         onClick={() => navigate(`/blogs/${res._id}`)}
