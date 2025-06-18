@@ -252,7 +252,7 @@ const Tech = () => {
               onChange={(city) => {
                 setSelectedCity(city);
                 setMyState((prev) => ({ ...prev, city: city.label }));
- âg                }}
+              }}
               placeholder="Select a city..."
               isDisabled={!selectedState}
               styles={{

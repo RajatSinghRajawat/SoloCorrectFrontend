@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "./all.css";
+import "./Home.css"; // Updated CSS file name
 import solotrip from "../components/images/soloTrip.jpg";
 import Header from "./Header";
 import { useNavigate } from "react-router-dom";
@@ -35,7 +35,6 @@ const Home = () => {
     GetBlogs();
   }, []);
 
-  // ✅ Proper Sorting - latest blog first
   const sortedData = [...data].sort((a, b) => {
     const dateA = a.createdAt
       ? new Date(a.createdAt)
@@ -54,31 +53,23 @@ const Home = () => {
         <div className="row">
           {/* LEFT: Featured Section */}
           <div className="col-lg-8">
-            <div className="main-content">
-              <div className="featured-article">
-                <div className="featured-image-container">
-                  {/* <img
-                    src={`http://82.29.166.100:4000/${sortedData[0]?.img?.[0] || solotrip}`}
-                    alt="Featured"
-                    className="featured-image"
-                  /> */}
-                   <img
+            <div className="unique-main-content">
+              <div className="unique-featured-article">
+                <div className="unique-featured-image-container">
+                  <img
                     src={solotrip}
                     alt="Featured"
-                    className="featured-image"
+                    className="unique-featured-image"
                   />
                 </div>
-                <div className="top-news">
+                <div className="unique-top-news">
                   <a
                     href="#"
                     onClick={() => navigate(`/blogs/${sortedData[0]?._id}`)}
-                    className="featured-title"
+                    className="unique-featured-title"
                   >
                     {sortedData[0]?.title || "No Featured Blog Available"}
                   </a>
-                  {/* <p className="featured-subtitle">
-                    {sortedData[0]?.travelDescription?.slice(0, 150) || "No description available."}
-                  </p> */}
                 </div>
               </div>
             </div>
@@ -86,23 +77,23 @@ const Home = () => {
 
           {/* RIGHT: Top Stories */}
           <div className="col-lg-4">
-            <div className="top-stories">
-              <h2 className="top-stories-header">Top Stories</h2>
-              <ol className="story-list">
+            <div className="unique-top-stories">
+              <h2 className="unique-top-stories-header">Top Stories</h2>
+              <ol className="unique-story-list">
                 {sortedData.slice(0, 5).map((res, index) => (
                   <li
                     onClick={() => navigate(`/blogs/${res?._id}`)}
                     style={{ cursor: "pointer" }}
-                    className="story-item d-flex align-items-center mb-3"
+                    className="unique-story-item d-flex align-items-center mb-3"
                     key={index + 1}
                   >
-                    <div className="story-number me-3">{index + 1}</div>
+                    <div className="unique-story-number me-3">{index + 1}</div>
 
-                    <div className="story-content flex-grow-1">
-                      <h3 className="story-title mb-1">{res?.title}</h3>
-                      <div className="story-meta">
-                        <span className="story-author">{res?.author}</span>
-                        <p className="story-time">
+                    <div className="unique-story-content flex-grow-1">
+                      <h3 className="unique-story-title mb-1">{res?.title}</h3>
+                      <div className="unique-story-meta">
+                        <span className="unique-story-author">{res?.author}</span>
+                        <p className="unique-story-time">
                           <span style={{ color: "#32a868" }}>
                             Travel Blog
                           </span>
@@ -121,16 +112,7 @@ const Home = () => {
                       </div>
                     </div>
 
-                    <div
-                      className="story-thumbnail"
-                      style={{
-                        width: "80px",
-                        height: "80px",
-                        overflow: "hidden",
-                        borderRadius: "8px",
-                        flexShrink: 0,
-                      }}
-                    >
+                    <div className="unique-story-thumbnail">
                       <img
                         src={`http://82.29.166.100:4000/${res?.img?.[0]}`}
                         alt={res?.title}

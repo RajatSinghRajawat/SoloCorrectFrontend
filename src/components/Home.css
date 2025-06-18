@@ -1,0 +1,114 @@
+/* Main container */
+.unique-main-content {
+  padding: 20px 0;
+}
+
+/* Featured Article Section */
+.unique-featured-article {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+/* Featured Image */
+.unique-featured-image-container {
+  width: 100%;
+  height: 400px; /* Reduced height for better proportion */
+  overflow: hidden;
+}
+
+.unique-featured-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures the image scales properly */
+}
+
+/* Featured Title */
+.unique-top-news {
+  position: absolute;
+  bottom: -26px;
+
+  left: 50%;
+  color: white;
+}
+
+.unique-featured-title {
+  font-size: 54px; /* Reduced font size for better fit */
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); /* Adds visibility on image */
+}
+
+.unique-featured-title:hover {
+  text-decoration: underline;
+}
+
+/* Top Stories Section */
+.unique-top-stories {
+  padding: 20px;
+}
+
+.unique-top-stories-header {
+  font-size: 20px; /* Reduced font size */
+  margin-bottom: 15px;
+  color: white;
+}
+
+.unique-story-list {
+  list-style: none;
+  padding: 0;
+}
+
+.unique-story-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.unique-story-number {
+  font-size: 18px; /* Reduced font size */
+  color: white;
+  font-weight: bold;
+}
+
+.unique-story-content {
+  flex-grow: 1;
+}
+
+.unique-story-title {
+  font-size: 17px; /* Reduced font size */
+  color: white;
+  margin-bottom: 5px;
+  font-weight: normal;
+}
+
+.unique-story-meta {
+  font-size: 15px; /* Reduced font size */
+  color: #ccc;
+}
+
+.unique-story-author {
+  text-transform: uppercase;
+  font-size: 15px; /* Reduced font size */
+  color: #ccc;
+}
+
+.unique-story-time {
+  font-size: 10px; /* Reduced font size */
+  color: #ccc;
+}
+
+.unique-story-thumbnail {
+  width: 100px;
+  height: 80px;
+  overflow: hidden;
+  border-radius: 8px;
+  flex-shrink: 0;
+  padding-left: 1rem;
+}
+
+.unique-story-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

@@ -1,12 +1,27 @@
-/* eslint-disable no-unused-vars */
-import { useState, useEffect } from "react";
-import Button from "react-bootstrap/Button";
-import "./all.css";
-import { toast, ToastContainer } from "react-toastify";
-import Header from "./Header";
-import { Country, City } from "country-state-city";
-import logo from "../components/images/logo.png";
+import React, { useState, useEffect, useCallback } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import Button from "react-bootstrap/Button";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { Country, City } from "country-state-city";
+import { FaHeart, FaShare } from "react-icons/fa";
+import { CiHeart } from "react-icons/ci";
+import {
+  FacebookShareButton,
+  TwitterShareButton,
+  WhatsappShareButton,
+  LinkedinShareButton,
+  FacebookIcon,
+  TwitterIcon,
+  WhatsappIcon,
+  LinkedinIcon,
+} from "react-share";
+import Header from "./Header";
+import logo from "../components/images/logo.png";
+import "./all.css";
+
+// Base URL for API (use environment variable in production)
+const API_BASE_URL = "http://82.29.166.100:4000";
 
 const AccountProfile = () => {
   const [formData, setFormData] = useState({
@@ -20,26 +35,43 @@ const AccountProfile = () => {
     budgetRange: "",
     foodPreference: "",
     hiking: "",
+    profileImage: "",
+    following: 0,
+    followers: 0,
   });
   const [file, setFile] = useState(null);
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("My Blogs");
+  const [blogs, setBlogs] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const [currentImageIndex, setCurrentImageIndex] = useState({});
+  const [showShareOptions, setShowShareOptions] = useState(null);
   const navigate = useNavigate();
 
+  // Centralized user data parsing
+  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+  const userid = userData?.user?._id || userData?._id || null;
+  // Log userid for debugging
+  console.log("Current userid:", userid);
+
+  // Handle file input change
   const handleFileChange = (e) => setFile(e.target.files[0]);
 
-  const fetchUserData = async () => {
+  // Fetch user data
+  const fetchUserData = useCallback(async () => {
+    if (!userid) {
+      toast.error("Please log in to view profile");
+      navigate("/login");
+      return;
+    }
     setLoading(true);
     try {
-      const userData = JSON.parse(localStorage.getItem("userData"));
-      if (!userData || (!userData.user?._id && !userData._id)) {
-        throw new Error("User data not found in localStorage");
-      }
-      const userId = userData.user?._id || userData._id;
-      const response = await fetch(
-        `http://82.29.166.100:4000/api/auth/user/${userId}`
-      );
+      const response = await fetch(`${API_BASE_URL}/api/auth/user/${userid}`, {
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       const result = await response.json();
       if (result.user) {
         setFormData({
@@ -53,18 +85,116 @@ const AccountProfile = () => {
           budgetRange: result.user.budgetRange || "",
           foodPreference: result.user.foodPreference || "",
           hiking: result.user.hiking || "",
+          profileImage: result.user.profileImage || "",
+          following: result.user.following || 0,
+          followers: result.user.followers || 0,
         });
       } else {
-        toast.error("Failed to fetch user data");
+        toast.error(result.message || "Failed to fetch user data");
       }
     } catch (error) {
-      console.error("Error fetching user data:", error);
-      toast.error("An error occurred while fetching user data");
+      console.error("Error fetching user data:", error.message);
+      toast.error(`Error fetching user data: ${error.message}`);
     } finally {
       setLoading(false);
     }
+  }, [userid, navigate]);
+
+  // Fetch blogs created by the logged-in user
+  const fetchBlogs = useCallback(async () => {
+    if (!userid) {
+      toast.error("Please log in to view blogs");
+      return;
+    }
+    setLoading(true);
+    try {
+      const query = new URLSearchParams({
+        page,
+        limit: 9,
+        userid, // Changed to lowercase 'userid' to match backend field
+      }).toString();
+      console.log("Fetching blogs with URL:", `${API_BASE_URL}/api/auth/getblogs?${query}`);
+
+      const response = await fetch(`${API_BASE_URL}/api/auth/getblogs?${query}`, {
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      const result = await response.json();
+      console.log("API Response:", result);
+
+      if (result.blogs && Array.isArray(result.blogs)) {
+        // Filter blogs to ensure only the user's blogs are displayed
+        const userBlogs = result.blogs.filter(
+          (blog) => blog.authorId === userid || blog.userId === userid || blog.author === userid
+        );
+        setBlogs(userBlogs);
+        setTotalPages(result.totalPages || 1);
+        setCurrentImageIndex(
+          userBlogs.reduce((acc, blog) => ({ ...acc, [blog._id]: 0 }), {})
+        );
+        setShowShareOptions(null);
+        if (userBlogs.length === 0) {
+          console.log("No blogs found for userid:", userid);
+          toast.info("No blogs found for this user.");
+        }
+      } else {
+        toast.error(result.message || "Failed to fetch blogs");
+        setBlogs([]);
+        setTotalPages(1);
+      }
+    } catch (error) {
+      console.error("Fetch Blogs Error:", error.message);
+      toast.error(`Error fetching blogs: ${error.message}`);
+      setBlogs([]);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
+    }
+  }, [userid, page]);
+
+  // Handle like/unlike blog
+  const handleLike = async (blogId) => {
+    if (!userid) {
+      toast.error("Please log in to like a blog");
+      return;
+    }
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/like/${blogId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userid }), // Changed to lowercase 'userid'
+      });
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      toast.success("Like updated successfully");
+      fetchBlogs();
+    } catch (error) {
+      console.error("Like API Error:", error.message);
+      toast.error(`Error updating like: ${error.message}`);
+    }
   };
 
+  // Image navigation
+  const nextImage = (id, images) => {
+    setCurrentImageIndex((prev) => ({
+      ...prev,
+      [id]: (prev[id] + 1) % (images?.length || 1),
+    }));
+  };
+
+  const prevImage = (id, images) => {
+    setCurrentImageIndex((prev) => ({
+      ...prev,
+      [id]: (prev[id] - 1 + (images?.length || 1)) % (images?.length || 1),
+    }));
+  };
+
+  // Toggle share options
+  const toggleShare = (blogId) => {
+    setShowShareOptions((prev) => (prev === blogId ? null : blogId));
+  };
+
+  // Update cities based on selected country
   useEffect(() => {
     if (formData.country) {
       const selectedCities = City.getCitiesOfCountry(formData.country) || [];
@@ -74,47 +204,49 @@ const AccountProfile = () => {
     }
   }, [formData.country]);
 
+  // Fetch user data on mount
   useEffect(() => {
     fetchUserData();
-  }, []);
+  }, [fetchUserData]);
 
+  // Fetch blogs when tab or page changes
+  useEffect(() => {
+    if (activeTab === "My Blogs") {
+      fetchBlogs();
+    }
+  }, [activeTab, fetchBlogs]);
+
+  // Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const UpdateProfile = async () => {
+  // Update profile
+  const updateProfile = async () => {
+    if (!userid) {
+      toast.error("Please log in to update profile");
+      return;
+    }
+    setLoading(true);
     try {
-      setLoading(true);
-      const formdata = new FormData();
-      formdata.append("email", formData.email);
-      formdata.append("name", formData.name);
-      if (file) formdata.append("img", file);
-      formdata.append("textarea", formData.textarea);
-      formdata.append("committingName", formData.committingName);
-      formdata.append("country", formData.country);
-      formdata.append("city", formData.city);
-      formdata.append("travelStyle", formData.travelStyle);
-      formdata.append("budgetRange", formData.budgetRange);
-      formdata.append("foodPreference", formData.foodPreference);
-      formdata.append("hiking", formData.hiking);
+      const formDataToSend = new FormData();
+      formDataToSend.append("email", formData.email);
+      formDataToSend.append("name", formData.name);
+      if (file) formDataToSend.append("img", file);
+      formDataToSend.append("textarea", formData.textarea);
+      formDataToSend.append("committingName", formData.committingName);
+      formDataToSend.append("country", formData.country);
+      formDataToSend.append("city", formData.city);
+      formDataToSend.append("travelStyle", formData.travelStyle);
+      formDataToSend.append("budgetRange", formData.budgetRange);
+      formDataToSend.append("foodPreference", formData.foodPreference);
+      formDataToSend.append("hiking", formData.hiking);
 
-      const userData = JSON.parse(localStorage.getItem("userData"));
-      if (!userData || (!userData.user?._id && !userData._id)) {
-        throw new Error("User data not found in localStorage");
-      }
-      const userId = userData.user?._id || userData._id;
-
-      const response = await fetch(
-        `http://82.29.166.100:4000/api/auth/update/${userId}`,
-        {
-          method: "PUT",
-          body: formdata,
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/auth/update/${userid}`, {
+        method: "PUT",
+        body: formDataToSend,
+      });
 
       const result = await response.json();
       if (response.ok) {
@@ -125,101 +257,68 @@ const AccountProfile = () => {
         toast.error(result?.message || "Failed to update profile");
       }
     } catch (error) {
-      console.error("Error updating profile:", error);
-      toast.error("An error occurred. Please try again.");
+      console.error("Error updating profile:", error.message);
+      toast.error(`Error updating profile: ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
 
+  // Loading spinner
   if (loading) {
     return (
-      <div
-        style={{
-          height: "100vh",
-          width: "100vw",
-          backgroundColor: "#000",
-          color: "#fff",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-        }}
-      >
-        <div style={{ position: "relative", width: "150px", height: "150px" }}>
-          <div
-            style={{
-              border: "10px solid #f3f3f3",
-              borderTop: "10px solid #3498db",
-              borderRadius: "50%",
-              width: "150px",
-              height: "150px",
-              animation: "spin 1s linear infinite",
-            }}
-          ></div>
-          <img
-            src={logo}
-            alt="Loading"
-            style={{
-              width: "80px",
-              height: "80px",
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-            }}
-          />
+      <div className="loading-container">
+        <div className="spinner-wrapper">
+          <div className="spinner"></div>
+          <img src={logo} alt="Loading" className="spinner-logo" />
         </div>
-        <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
       </div>
     );
   }
 
   return (
     <>
-      <ToastContainer />
-      <Header className="text-dark" />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar
+        theme="dark"
+        closeOnClick
+        pauseOnHover
+      />
+      <Header />
       <div className="profile-container">
         <h1 className="account-title">Your Account</h1>
 
         <div className="profile-card">
           <div className="profile-header">
             <img
-              src="https://via.placeholder.com/80"
+              src={formData.profileImage ? `${API_BASE_URL}/${formData.profileImage}` : "https://via.placeholder.com/80"}
               alt="Profile"
               className="profile-image"
             />
             <div className="profile-info">
-              <h2 className="profile-name">
-                {formData.name || "Sarah Explorer"}
-              </h2>
+              <h2 className="profile-name">{formData.name || "Guest User"}</h2>
               <p className="profile-location">
-                📍 {formData.city || "New York"}, {formData.country || "USA"}
+                📍 {formData.city || "Unknown"}, {formData.country || "Unknown"}
               </p>
               <div className="profile-stats">
                 <span>
-                  <strong>{formData.blogs || "28"}</strong> Blogs
+                  <strong>{blogs.length}</strong> Blogs
                 </span>
                 <span>
-                  <strong>{formData.following || "142"}</strong> Following
+                  <strong>{formData.following}</strong> Following
                 </span>
                 <span>
-                  <strong>{formData.followers || "256"}</strong> Followers
+                  <strong>{formData.followers}</strong> Followers
                 </span>
               </div>
-              <p className="profile-bio">
-                {formData.textarea ||
-                  "Adventure seeker, solo traveler, and content creator. Sharing my journey across the globe one trip at a time."}
-              </p>
+              <p classலை className="profile-bio">{formData.textarea || "No bio available."}</p>
             </div>
             <button
               onClick={() => setActiveTab("My Settings")}
               className="edit-profile-btn"
+              aria-label="Edit profile"
             >
               Edit Profile
             </button>
@@ -230,24 +329,28 @@ const AccountProfile = () => {
           <button
             className={`tab ${activeTab === "My Blogs" ? "active" : ""}`}
             onClick={() => setActiveTab("My Blogs")}
+            aria-label="View my blogs"
           >
             My Blogs
           </button>
           <button
             className={`tab ${activeTab === "My Events" ? "active" : ""}`}
             onClick={() => setActiveTab("My Events")}
+            aria-label="View my events"
           >
             My Events
           </button>
           <button
             className={`tab ${activeTab === "My Interests" ? "active" : ""}`}
             onClick={() => setActiveTab("My Interests")}
+            aria-label="View my interests"
           >
             My Interests
           </button>
           <button
             className={`tab ${activeTab === "My Settings" ? "active" : ""}`}
             onClick={() => setActiveTab("My Settings")}
+            aria-label="View my settings"
           >
             My Settings
           </button>
@@ -258,20 +361,170 @@ const AccountProfile = () => {
             <>
               <h3>My Blogs</h3>
               <NavLink to="/add/blogs">
-                <button className="create-blog-btn">+ Create New Blog</button>
+                <button className="create-blog-btn" aria-label="Create new blog">
+                  + Create New Blog
+                </button>
               </NavLink>
 
-              <div className="blog-preview">
-                <img
-                  src="https://via.placeholder.com/150"
-                  alt="Blog Preview"
-                  className="blog-image"
-                />
-                <img
-                  src="https://via.placeholder.com/150"
-                  alt="Blog Preview"
-                  className="blog-image"
-                />
+              <div className="row g-4">
+                {blogs.length > 0 ? (
+                  blogs.map((blog) => {
+                    const shareUrl = `${API_BASE_URL}/blog/${blog._id}`;
+                    return (
+                      <div key={blog._id} className="col-lg-6 col-md-12 col-sm-12">
+                        <div className="card blog-card shadow-lg border-0 rounded-4">
+                          <div className="image-container position-relative">
+                            <img
+                              src={`${API_BASE_URL}/${blog.img?.[currentImageIndex[blog._id] || 0] || ""}`}
+                              alt={`Image ${currentImageIndex[blog._id] + 1 || 1}`}
+                              className="card-img-top rounded-top-4"
+                              style={{ height: "250px", objectFit: "cover" }}
+                              onError={(e) => {
+                                e.target.src = "/placeholder-image.jpg";
+                                console.warn(`Failed to load image for blog ${blog._id}`);
+                              }}
+                            />
+                            {blog.img?.length > 1 && (
+                              <>
+                                <button
+                                  className="prev-btn"
+                                  onClick={() => prevImage(blog._id, blog.img)}
+                                  aria-label="Previous image"
+                                >
+                                  ◀
+                                </button>
+                                <button
+                                  className="next-btn"
+                                  onClick={() => nextImage(blog._id, blog.img)}
+                                  aria-label="Next image"
+                                >
+                                  ▶
+                                </button>
+                              </>
+                            )}
+                          </div>
+                          <div
+                            className="card-body p-4 d-flex flex-column justify-content-between"
+                            style={{ minHeight: "250px" }}
+                          >
+                            <div>
+                              <div className="d-flex align-items-center mb-2">
+                                <button
+                                  onClick={() => handleLike(blog._id)}
+                                  className="btn p-0"
+                                  aria-label={blog.likes?.includes(userid) ? "Unlike blog" : "Like blog"}
+                                >
+                                  {blog.likes?.includes(userid) ? (
+                                    <FaHeart color="red" size={20} />
+                                  ) : (
+                                    <CiHeart size={20} />
+                                  )}
+                                </button>
+                                <span className="ms-2 text-muted">{blog.likes?.length || 0} Likes</span>
+                                <div className="ms-2 position-relative">
+                                  <FaShare
+                                    style={{ cursor: "pointer", fontSize: "20px" }}
+                                    onClick={() => toggleShare(blog._id)}
+                                    aria-label="Share blog"
+                                  />
+                                  {showShareOptions === blog._id && (
+                                    <div className="share-buttons">
+                                      <label style={{ fontWeight: "bold" }}>Share this blog:</label>
+                                      <a
+                                        href={shareUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                          color: "#007bff",
+                                          textDecoration: "underline",
+                                          wordBreak: "break-all",
+                                          fontSize: "14px",
+                                        }}
+                                      >
+                                        {shareUrl}
+                                      </a>
+                                      <button
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(shareUrl);
+                                          toast.success("Link copied to clipboard!");
+                                        }}
+                                        className="copy-link-btn"
+                                        aria-label="Copy share link"
+                                      >
+                                        Copy Link
+                                      </button>
+                                      <div className="share-icons">
+                                        <FacebookShareButton url={shareUrl} quote="Check out this blog!">
+                                          <FacebookIcon size={32} round />
+                                        </FacebookShareButton>
+                                        <TwitterShareButton url={shareUrl} title="Check out this blog!">
+                                          <TwitterIcon size={32} round />
+                                        </TwitterShareButton>
+                                        <WhatsappShareButton url={shareUrl} title="Check out this blog!">
+                                          <WhatsappIcon size={32} round />
+                                        </WhatsappShareButton>
+                                        <LinkedinShareButton url={shareUrl}>
+                                          <LinkedinIcon size={32} round />
+                                        </LinkedinShareButton>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <h5 className="card-title fw-bold text-truncate">{blog.title || "Untitled"}</h5>
+                              <p className="card-text text-muted text-truncate">
+                                {blog.shortdescription || "No description available"}
+                              </p>
+                              <div className="d-flex text-muted" style={{ textTransform: "capitalize" }}>
+                                <p className="me-2">{blog.States || "N/A"},</p>
+                                <p>{blog.City || "N/A"}</p>
+                              </div>
+                              <div className="d-flex justify-content-between">
+                                <p className="text-muted" style={{ fontSize: "0.9rem" }}>
+                                  By: {blog.author || "Unknown"}
+                                </p>
+                                <p className="text-muted" style={{ fontSize: "0.9rem" }}>
+                                  Created: {blog.createdAt ? new Date(blog.createdAt).toLocaleDateString() : "N/A"}
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              className="btn btn-primary mt-3 w-100"
+                              onClick={() => navigate(`/blogs/${blog._id}`)}
+                              aria-label={`Read more about ${blog.title || "this blog"}`}
+                            >
+                              Read More
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <h4 className="text-white mt-5 pt-5 text-center">No blogs found</h4>
+                )}
+              </div>
+
+              <div className="pagination-controls d-flex justify-content-center mt-4">
+                <button
+                  className="btn btn-secondary me-2"
+                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={page === 1}
+                  aria-label="Previous page"
+                >
+                  ◀
+                </button>
+                <span className="text-light align-self-center">
+                  Page {page} of {totalPages}
+                </span>
+                <button
+                  className="btn btn-secondary ms-2"
+                  onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={page === totalPages}
+                  aria-label="Next page"
+                >
+                  ▶
+                </button>
               </div>
             </>
           )}
@@ -296,16 +549,27 @@ const AccountProfile = () => {
 
           {activeTab === "My Settings" && (
             <>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <div className="d-flex justify-content-between align-items-center mb-3">
                 <h3>My Settings</h3>
                 <button
                   className="forgot-password-btn"
                   onClick={() => navigate("/forgot-password/send-otp")}
+                  aria-label="Reset password"
                 >
                   Forgot Password?
                 </button>
               </div>
               <div className="settings-form">
+                <div className="input-group">
+                  <label htmlFor="profileImage">Profile Image</label>
+                  <input
+                    type="file"
+                    className="input-field p-2"
+                    id="profileImage"
+                    onChange={handleFileChange}
+                    accept="image/*"
+                  />
+                </div>
                 <div className="input-group">
                   <label htmlFor="name">Name</label>
                   <input
@@ -316,6 +580,7 @@ const AccountProfile = () => {
                     onChange={handleChange}
                     name="name"
                     placeholder="Enter your name"
+                    aria-label="Name"
                   />
                 </div>
                 <div className="input-group">
@@ -326,6 +591,7 @@ const AccountProfile = () => {
                     id="email"
                     value={formData.email}
                     readOnly
+                    aria-label="Email (read-only)"
                   />
                 </div>
                 <div className="input-group">
@@ -338,6 +604,7 @@ const AccountProfile = () => {
                     onChange={handleChange}
                     name="committingName"
                     placeholder="Enter your commenting name"
+                    aria-label="Commenting name"
                   />
                 </div>
                 <div className="input-group">
@@ -348,6 +615,7 @@ const AccountProfile = () => {
                     value={formData.country}
                     onChange={handleChange}
                     name="country"
+                    aria-label="Select country"
                   >
                     <option value="" disabled>
                       Select Country
@@ -367,6 +635,8 @@ const AccountProfile = () => {
                     value={formData.city}
                     onChange={handleChange}
                     name="city"
+                    disabled={!formData.country}
+                    aria-label="Select city"
                   >
                     <option value="" disabled>
                       Select City
@@ -386,14 +656,15 @@ const AccountProfile = () => {
                     value={formData.travelStyle}
                     onChange={handleChange}
                     name="travelStyle"
+                    aria-label="Select travel style"
                   >
                     <option value="" disabled>
                       Select Travel Style
                     </option>
-                    <option>Solo</option>
-                    <option>Group</option>
-                    <option>Family</option>
-                    <option>Couple</option>
+                    <option value="Solo">Solo</option>
+                    <option value="Group">Group</option>
+                    <option value="Family">Family</option>
+                    <option value="Couple">Couple</option>
                   </select>
                 </div>
                 <div className="input-group">
@@ -404,13 +675,14 @@ const AccountProfile = () => {
                     value={formData.budgetRange}
                     onChange={handleChange}
                     name="budgetRange"
+                    aria-label="Select budget range"
                   >
                     <option value="" disabled>
                       Select Budget Range
                     </option>
-                    <option>Low Range</option>
-                    <option>Mid Range</option>
-                    <option>High Range</option>
+                    <option value="Low Range">Low Range</option>
+                    <option value="Mid Range">Mid Range</option>
+                    <option value="High Range">High Range</option>
                   </select>
                 </div>
                 <div className="input-group">
@@ -421,13 +693,14 @@ const AccountProfile = () => {
                     value={formData.foodPreference}
                     onChange={handleChange}
                     name="foodPreference"
+                    aria-label="Select food preference"
                   >
                     <option value="" disabled>
                       Select Food Preference
                     </option>
-                    <option>Vegetarian</option>
-                    <option>Vegan</option>
-                    <option>Non-Vegetarian</option>
+                    <option value="Vegetarian">Vegetarian</option>
+                    <option value="Vegan">Vegan</option>
+                    <option value="Non-Vegetarian">Non-Vegetarian</option>
                   </select>
                 </div>
                 <div className="input-group">
@@ -438,13 +711,14 @@ const AccountProfile = () => {
                     value={formData.hiking}
                     onChange={handleChange}
                     name="hiking"
+                    aria-label="Select activity interest"
                   >
                     <option value="" disabled>
                       Select Activity
                     </option>
-                    <option>Hiking</option>
-                    <option>Beaches</option>
-                    <option>Nightlife</option>
+                    <option value="Hiking">Hiking</option>
+                    <option value="Beaches">Beaches</option>
+                    <option value="Nightlife">Nightlife</option>
                   </select>
                 </div>
                 <div className="input-group">
@@ -457,13 +731,14 @@ const AccountProfile = () => {
                     name="textarea"
                     placeholder="Tell us about yourself"
                     rows={4}
+                    aria-label="Bio"
                   />
                 </div>
-
                 <Button
                   variant="primary"
-                  onClick={UpdateProfile}
+                  onClick={updateProfile}
                   disabled={loading}
+                  aria-label={loading ? "Updating profile" : "Update profile"}
                 >
                   {loading ? "Updating..." : "Update Profile"}
                 </Button>
