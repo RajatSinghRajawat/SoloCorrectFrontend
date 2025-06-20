@@ -11,10 +11,9 @@ const AddBlogs = () => {
   const [title, setTitle] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [content, setContent] = useState("");
-  const [facebook, setFacebook] = useState("");
-
+  const [socialLink, setSocialLink] = useState("");
   const [images, setImages] = useState([]);
-  const [author, setAuthor] = useState([]);
+  const [author, setAuthor] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedState, setSelectedState] = useState(null);
   const [selectedCity, setSelectedCity] = useState(null);
@@ -23,6 +22,7 @@ const AddBlogs = () => {
   const editor = useRef(null);
   const navigate = useNavigate();
 
+  // State and City options for India
   const states = State.getStatesOfCountry("IN").map((state) => ({
     value: state.isoCode,
     label: state.name,
@@ -35,6 +35,7 @@ const AddBlogs = () => {
       }))
     : [];
 
+  // Handle image uploads with validation
   const handleImageChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
     const validFiles = [];
@@ -63,8 +64,26 @@ const AddBlogs = () => {
     "image/webp",
   ];
 
+  // API call to create a blog
   const CreateApi = async () => {
     try {
+      const token = localStorage.getItem("token");
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      console.log("Expires at:", new Date(payload.exp * 1000));
+      console.log(
+        localStorage.getItem("token"),
+        "localStorage.getItem('00token)"
+      );
+
+      const myHeaders = new Headers();
+      myHeaders.append("Authorization", `Bearer ${token}`); //
+      if (!token || typeof token !== "string" || token.trim() === "") {
+        toast.error("No valid authentication token found. Please log in.");
+
+        return;
+      }
+
+      // Validate required fields
       if (!title || !shortDescription || !content) {
         toast.error("Please fill in all required fields!");
         return;
@@ -75,46 +94,57 @@ const AddBlogs = () => {
       formdata.append("title", title);
       formdata.append("shortdescription", shortDescription);
       formdata.append("fulldescription", content);
-      formdata.append("facebook", facebook);
+      formdata.append("facebook", socialLink);
       formdata.append("author", author);
-
       formdata.append("States", selectedState?.label || "");
       formdata.append("City", selectedCity?.label || "");
-      formdata.append("likes", "5");
-      formdata.append("comment", "hello");
+
+      // Debug: Log FormData entries
+      for (let [key, value] of formdata.entries()) {
+        console.log(`${key}: ${value}`);
+      }
 
       setLoading(true);
-      const response = await fetch(
-        "http://82.29.166.100:4000/api/auth/addblogs",
-        {
-          method: "POST",
-          body: formdata,
-        }
-      );
 
-      const result = await response.json();
+      const response = await fetch("http://82.29.166.100:4000/api/auth/addblogs", {
+        method: "POST",
+        headers: myHeaders,
+        body: formdata,
+      });
+
+      let result;
+      try {
+        result = await response.json();
+        console.log("Response:", result); // Debug: Log response
+      } catch (e) {
+        console.error("Response is not JSON:", await response.text());
+        toast.error("Invalid response from server!");
+        setLoading(false);
+        return;
+      }
+
       setLoading(false);
 
-      if (result) {
+      if (response.ok) {
         toast.success("Blog Created Successfully!");
         setTitle("");
         setShortDescription("");
         setContent("");
-        setFacebook("");
+        setSocialLink("");
         setAuthor("");
         setSelectedCity(null);
         setSelectedState(null);
         setImages([]);
-        fileInputRef.current.value = "";
-
-        setTimeout(() => {
-          navigate("/");
-        }, 1000);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        setTimeout(() => navigate("/"), 1000);
       } else {
-        toast.error(result?.message || "Something went wrong!");
+        toast.error(result?.message || "Failed to create blog!");
       }
+      console.log("Response:", result);
     } catch (error) {
-      console.error(error);
+      console.error("Fetch Error:", error.message);
       toast.error("Unexpected error occurred!");
       setLoading(false);
     }
@@ -164,13 +194,13 @@ const AddBlogs = () => {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Instagram</label>
+                <label className="form-label">Social Media Link</label>
                 <input
                   type="text"
-                  value={facebook}
-                  onChange={(e) => setFacebook(e.target.value)}
+                  value={socialLink}
+                  onChange={(e) => setSocialLink(e.target.value)}
                   className="form-input"
-                  placeholder="Enter Instagram Link"
+                  placeholder="Enter social media link (e.g., Instagram)"
                 />
               </div>
               <div className="form-group">
@@ -208,9 +238,11 @@ const AddBlogs = () => {
                   value={shortDescription}
                   onChange={(e) => {
                     const text = e.target.value;
-                    const words = text.trim().split(/\s+/);
+                    const words = text.trim().split(/\s+/).filter(Boolean);
                     if (words.length <= 200) {
                       setShortDescription(text);
+                    } else {
+                      toast.error("Short description cannot exceed 200 words!");
                     }
                   }}
                   className="form-input"
@@ -222,7 +254,6 @@ const AddBlogs = () => {
                   /200
                 </small>
               </div>
-
               <div className="form-group">
                 <label className="form-label">Image Upload</label>
                 <input
@@ -247,7 +278,6 @@ const AddBlogs = () => {
                   onMouseOver={(e) => (e.target.style.borderColor = "#007bff")}
                   onMouseOut={(e) => (e.target.style.borderColor = "#ccc")}
                 />
-
                 <div className="image-preview-container d-flex justify-content-between">
                   {images.map((file, index) => (
                     <img
@@ -266,19 +296,9 @@ const AddBlogs = () => {
                   ref={editor}
                   value={content}
                   tabIndex={1}
-                  onBlur={setContent}
+                  onChange={(newContent) => setContent(newContent)}
                 />
               </div>
-              {/* <div style={{ textAlign: "right" }}>
-                <button
-                  type="submit"
-                  className="submit-button"
-                  onClick={CreateApi}
-                  disabled={loading}
-                >
-                  {loading ? "Publishing..." : "Publish Blog"}
-                </button>
-              </div> */}
               <div className="d-flex justify-content-end gap-3 mt-4">
                 <button
                   className="submit-button"

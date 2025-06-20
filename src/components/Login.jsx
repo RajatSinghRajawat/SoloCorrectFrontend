@@ -31,7 +31,8 @@ const Login = () => {
       if (response.ok) {
         toast.success("Login successful!");
         localStorage.setItem("userData", JSON.stringify(result.user));
-        localStorage.setItem("token", JSON.stringify(result.token));
+       localStorage.setItem("token", result.token); // ✅ No stringify
+
         
         navigate("/");
         console.log(result.token, "resss");
@@ -80,8 +81,8 @@ const Login = () => {
       if (response) {
         toast.success("Registration successful!");
         localStorage.setItem("userData", JSON.stringify(result.user));
-        localStorage.setItem("token", JSON.stringify(result.token));
-        console.log("User saved to localStorage:", result.user);
+       localStorage.setItem("token", result.token); // ✅ No stringify
+
         setTimeout(() => {
           navigate("/");
         }, 1000);

@@ -20,10 +20,11 @@ import Header from "./Header";
 import logo from "../components/images/logo.png";
 import "./all.css";
 
-// Base URL for API (use environment variable in production)
+// Base URL for API
 const API_BASE_URL = "http://82.29.166.100:4000";
 
 const AccountProfile = () => {
+  // State variables
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -44,22 +45,23 @@ const AccountProfile = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("My Blogs");
   const [blogs, setBlogs] = useState([]);
-  const [totalPages, setTotalPages] = useState(1);
-  const [page, setPage] = useState(1);
+  const [events, setEvents] = useState([]);
+  const [interestedUsers, setInterestedUsers] = useState({}); // New state for interested users
+  const [totalPages, setTotalPages] = useState({ blogs: 1, events: 1 });
+  const [page, setPage] = useState({ blogs: 1, events: 1 });
   const [currentImageIndex, setCurrentImageIndex] = useState({});
   const [showShareOptions, setShowShareOptions] = useState(null);
   const navigate = useNavigate();
 
-  // Centralized user data parsing
+  // User data from localStorage
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
   const userid = userData?.user?._id || userData?._id || null;
-  // Log userid for debugging
-  console.log("Current userid:", userid);
+  const token = userData?.token; // Assuming token is stored in userData
 
-  // Handle file input change
+  // File input handler
   const handleFileChange = (e) => setFile(e.target.files[0]);
 
-  // Fetch user data
+  // Fetch user data from API
   const fetchUserData = useCallback(async () => {
     if (!userid) {
       toast.error("Please log in to view profile");
@@ -69,7 +71,7 @@ const AccountProfile = () => {
     setLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/user/${userid}`, {
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       });
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       const result = await response.json();
@@ -85,7 +87,7 @@ const AccountProfile = () => {
           budgetRange: result.user.budgetRange || "",
           foodPreference: result.user.foodPreference || "",
           hiking: result.user.hiking || "",
-          profileImage: result.user.profileImage || "",
+          img: result.user.img || "",
           following: result.user.following || 0,
           followers: result.user.followers || 0,
         });
@@ -98,9 +100,9 @@ const AccountProfile = () => {
     } finally {
       setLoading(false);
     }
-  }, [userid, navigate]);
+  }, [userid, navigate, token]);
 
-  // Fetch blogs created by the logged-in user
+  // Fetch user blogs with pagination
   const fetchBlogs = useCallback(async () => {
     if (!userid) {
       toast.error("Please log in to view blogs");
@@ -109,49 +111,113 @@ const AccountProfile = () => {
     setLoading(true);
     try {
       const query = new URLSearchParams({
-        page,
+        page: page.blogs,
         limit: 9,
-        userid, // Changed to lowercase 'userid' to match backend field
+        userid,
       }).toString();
-      console.log("Fetching blogs with URL:", `${API_BASE_URL}/api/auth/getblogs?${query}`);
-
       const response = await fetch(`${API_BASE_URL}/api/auth/getblogs?${query}`, {
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       });
-
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       const result = await response.json();
-      console.log("API Response:", result);
-
       if (result.blogs && Array.isArray(result.blogs)) {
-        // Filter blogs to ensure only the user's blogs are displayed
-        const userBlogs = result.blogs.filter(
-          (blog) => blog.authorId === userid || blog.userId === userid || blog.author === userid
-        );
-        setBlogs(userBlogs);
-        setTotalPages(result.totalPages || 1);
-        setCurrentImageIndex(
-          userBlogs.reduce((acc, blog) => ({ ...acc, [blog._id]: 0 }), {})
-        );
-        setShowShareOptions(null);
-        if (userBlogs.length === 0) {
-          console.log("No blogs found for userid:", userid);
-          toast.info("No blogs found for this user.");
-        }
+        setBlogs(result.blogs);
+        setTotalPages((prev) => ({ ...prev, blogs: result.totalPages || 1 }));
       } else {
         toast.error(result.message || "Failed to fetch blogs");
         setBlogs([]);
-        setTotalPages(1);
+        setTotalPages((prev) => ({ ...prev, blogs: 1 }));
       }
     } catch (error) {
       console.error("Fetch Blogs Error:", error.message);
       toast.error(`Error fetching blogs: ${error.message}`);
       setBlogs([]);
-      setTotalPages(1);
+      setTotalPages((prev) => ({ ...prev, blogs: 1 }));
     } finally {
       setLoading(false);
     }
-  }, [userid, page]);
+  }, [userid, page.blogs, token]);
+
+  // Fetch user events with pagination
+  const fetchEvents = useCallback(async () => {
+    if (!userid) {
+      toast.error("Please log in to view events");
+      return;
+    }
+    setLoading(true);
+    try {
+      const query = new URLSearchParams({
+        page: page.events,
+        limit: 9,
+        userid,
+      }).toString();
+      const response = await fetch(`${API_BASE_URL}/api/auth/getEvents?${query}`, {
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      const result = await response.json();
+      if (result.travel && Array.isArray(result.travel)) {
+        setEvents(result.travel);
+        setTotalPages((prev) => ({ ...prev, events: result.totalPages || 1 }));
+        // Fetch interested users for each event
+        result.travel.forEach((event) => {
+          fetchInterestedUsers(event._id);
+        });
+      } else {
+        toast.error(result.message || "Failed to fetch events");
+        setEvents([]);
+        setTotalPages((prev) => ({ ...prev, events: 1 }));
+      }
+    } catch (error) {
+      console.error("Fetch Events Error:", error.message);
+      toast.error(`Error fetching events: ${error.message}`);
+      setEvents([]);
+      setTotalPages((prev) => ({ ...prev, events: 1 }));
+    } finally {
+      setLoading(false);
+    }
+  }, [userid, page.events, token]);
+
+  // Fetch interested users for a specific event
+  const fetchInterestedUsers = useCallback(
+    async (eventId) => {
+      if (!token) {
+        toast.error("Please log in to view interested users");
+        return;
+      }
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/interested-users/${eventId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const result = await response.json();
+        if (result.interestedUsers && Array.isArray(result.interestedUsers)) {
+          setInterestedUsers((prev) => ({
+            ...prev,
+            [eventId]: result.interestedUsers,
+          }));
+        } else {
+          setInterestedUsers((prev) => ({
+            ...prev,
+            [eventId]: [],
+          }));
+          toast.error(result.message || "No interested users found");
+        }
+      } catch (error) {
+        console.error("Fetch Interested Users Error:", error.message);
+        toast.error(`Error fetching interested users: ${error.message}`);
+        setInterestedUsers((prev) => ({
+          ...prev,
+          [eventId]: [],
+        }));
+      }
+    },
+    [token]
+  );
 
   // Handle like/unlike blog
   const handleLike = async (blogId) => {
@@ -162,8 +228,8 @@ const AccountProfile = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/like/${blogId}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userid }), // Changed to lowercase 'userid'
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ userid }),
       });
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       toast.success("Like updated successfully");
@@ -174,7 +240,7 @@ const AccountProfile = () => {
     }
   };
 
-  // Image navigation
+  // Image navigation functions
   const nextImage = (id, images) => {
     setCurrentImageIndex((prev) => ({
       ...prev,
@@ -190,8 +256,8 @@ const AccountProfile = () => {
   };
 
   // Toggle share options
-  const toggleShare = (blogId) => {
-    setShowShareOptions((prev) => (prev === blogId ? null : blogId));
+  const toggleShare = (itemId) => {
+    setShowShareOptions((prev) => (prev === itemId ? null : itemId));
   };
 
   // Update cities based on selected country
@@ -204,17 +270,19 @@ const AccountProfile = () => {
     }
   }, [formData.country]);
 
-  // Fetch user data on mount
+  // Fetch user data on component mount
   useEffect(() => {
     fetchUserData();
   }, [fetchUserData]);
 
-  // Fetch blogs when tab or page changes
+  // Fetch blogs or events when tab or page changes
   useEffect(() => {
     if (activeTab === "My Blogs") {
       fetchBlogs();
+    } else if (activeTab === "My Events") {
+      fetchEvents();
     }
-  }, [activeTab, fetchBlogs]);
+  }, [activeTab, fetchBlogs, fetchEvents]);
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -222,7 +290,7 @@ const AccountProfile = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Update profile
+  // Update profile with API
   const updateProfile = async () => {
     if (!userid) {
       toast.error("Please log in to update profile");
@@ -245,6 +313,7 @@ const AccountProfile = () => {
 
       const response = await fetch(`${API_BASE_URL}/api/auth/update/${userid}`, {
         method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
         body: formDataToSend,
       });
 
@@ -253,6 +322,7 @@ const AccountProfile = () => {
         toast.success(result?.message || "Profile updated successfully");
         localStorage.setItem("userData", JSON.stringify(result.user));
         await fetchUserData();
+        setFile(null);
       } else {
         toast.error(result?.message || "Failed to update profile");
       }
@@ -293,9 +363,16 @@ const AccountProfile = () => {
         <div className="profile-card">
           <div className="profile-header">
             <img
-              src={formData.profileImage ? `${API_BASE_URL}/${formData.profileImage}` : "https://via.placeholder.com/80"}
+              src={
+                formData.img
+                  ? `${API_BASE_URL}/${formData.img}`
+                  : "https://via.placeholder.com/80?text=Avatar"
+              }
               alt="Profile"
               className="profile-image"
+              onError={(e) => {
+                e.target.src = "https://via.placeholder.com/80?text=Avatar";
+              }}
             />
             <div className="profile-info">
               <h2 className="profile-name">{formData.name || "Guest User"}</h2>
@@ -313,7 +390,7 @@ const AccountProfile = () => {
                   <strong>{formData.followers}</strong> Followers
                 </span>
               </div>
-              <p classலை className="profile-bio">{formData.textarea || "No bio available."}</p>
+              <p className="profile-bio">{formData.textarea || "No bio available."}</p>
             </div>
             <button
               onClick={() => setActiveTab("My Settings")}
@@ -372,17 +449,14 @@ const AccountProfile = () => {
                     const shareUrl = `${API_BASE_URL}/blog/${blog._id}`;
                     return (
                       <div key={blog._id} className="col-lg-6 col-md-12 col-sm-12">
-                        <div className="card blog-card shadow-lg border-0 rounded-4">
+                        <div className="bg-white shadow-lg border-0 rounded-4">
                           <div className="image-container position-relative">
                             <img
                               src={`${API_BASE_URL}/${blog.img?.[currentImageIndex[blog._id] || 0] || ""}`}
                               alt={`Image ${currentImageIndex[blog._id] + 1 || 1}`}
                               className="card-img-top rounded-top-4"
                               style={{ height: "250px", objectFit: "cover" }}
-                              onError={(e) => {
-                                e.target.src = "/placeholder-image.jpg";
-                                console.warn(`Failed to load image for blog ${blog._id}`);
-                              }}
+                              onError={(e) => (e.target.src = "/placeholder-image.jpg")}
                             />
                             {blog.img?.length > 1 && (
                               <>
@@ -508,19 +582,19 @@ const AccountProfile = () => {
               <div className="pagination-controls d-flex justify-content-center mt-4">
                 <button
                   className="btn btn-secondary me-2"
-                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={page === 1}
+                  onClick={() => setPage((prev) => ({ ...prev, blogs: Math.max(prev.blogs - 1, 1) }))}
+                  disabled={page.blogs === 1}
                   aria-label="Previous page"
                 >
                   ◀
                 </button>
                 <span className="text-light align-self-center">
-                  Page {page} of {totalPages}
+                  Page {page.blogs} of {totalPages.blogs}
                 </span>
                 <button
                   className="btn btn-secondary ms-2"
-                  onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-                  disabled={page === totalPages}
+                  onClick={() => setPage((prev) => ({ ...prev, blogs: Math.min(prev.blogs + 1, totalPages.blogs) }))}
+                  disabled={page.blogs === totalPages.blogs}
                   aria-label="Next page"
                 >
                   ▶
@@ -532,8 +606,165 @@ const AccountProfile = () => {
           {activeTab === "My Events" && (
             <>
               <h3>My Events</h3>
-              <div className="events-preview">
-                <p>No events available yet.</p>
+              <NavLink to="/add/events">
+                <button className="create-blog-btn" aria-label="Create new event">
+                  + Create New Event
+                </button>
+              </NavLink>
+
+              <div className="row g-4">
+                {events.length > 0 ? (
+                  events.map((event) => {
+                    const shareUrl = `${API_BASE_URL}/event/${event._id}`;
+                    const users = interestedUsers[event._id] || [];
+                    return (
+                      <div key={event._id} className="col-lg-6 col-md-12 col-sm-12">
+                        <div className="bg-white shadow-lg border-0 rounded-4">
+                          <div className="image-container position-relative">
+                            <img
+                              src={`${API_BASE_URL}/${event.img?.[currentImageIndex[event._id] || 0] || ""}`}
+                              alt={`Image ${currentImageIndex[event._id] + 1 || 1}`}
+                              className="card-img-top rounded-top-4"
+                              style={{ height: "250px", objectFit: "cover" }}
+                              onError={(e) => (e.target.src = "/placeholder-image.jpg")}
+                            />
+                            {event.img?.length > 1 && (
+                              <>
+                                <button
+                                  className="prev-btn"
+                                  onClick={() => prevImage(event._id, event.img)}
+                                  aria-label="Previous image"
+                                >
+                                  ◀
+                                </button>
+                                <button
+                                  className="next-btn"
+                                  onClick={() => nextImage(event._id, event.img)}
+                                  aria-label="Next image"
+                                >
+                                  ▶
+                                </button>
+                              </>
+                            )}
+                          </div>
+                          <div
+                            className="card-body p-4 d-flex flex-column justify-content-between"
+                            style={{ minHeight: "250px" }}
+                          >
+                            <div>
+                              <div className="d-flex align-items-center mb-2">
+                                <div className="ms-2 position-relative">
+                                  <FaShare
+                                    style={{ cursor: "pointer", fontSize: "20px" }}
+                                    onClick={() => toggleShare(event._id)}
+                                    aria-label="Share event"
+                                  />
+                                  {showShareOptions === event._id && (
+                                    <div className="share-buttons">
+                                      <label style={{ fontWeight: "bold" }}>Share this event:</label>
+                                      <a
+                                        href={shareUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                          color: "#007bff",
+                                          textDecoration: "underline",
+                                          wordBreak: "break-all",
+                                          fontSize: "14px",
+                                        }}
+                                      >
+                                        {shareUrl}
+                                      </a>
+                                      <button
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(shareUrl);
+                                          toast.success("Link copied to clipboard!");
+                                        }}
+                                        className="copy-link-btn"
+                                        aria-label="Copy share link"
+                                      >
+                                        Copy Link
+                                      </button>
+                                      <div className="share-icons">
+                                        <FacebookShareButton url={shareUrl} quote="Check out this event!">
+                                          <FacebookIcon size={32} round />
+                                        </FacebookShareButton>
+                                        <TwitterShareButton url={shareUrl} title="Check out this event!">
+                                          <TwitterIcon size={32} round />
+                                        </TwitterShareButton>
+                                        <WhatsappShareButton url={shareUrl} title="Check out this event!">
+                                          <WhatsappIcon size={32} round />
+                                        </WhatsappShareButton>
+                                        <LinkedinShareButton url={shareUrl}>
+                                          <LinkedinIcon size={32} round />
+                                        </LinkedinShareButton>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <h5 style={{ textTransform: "capitalize" }} className="card-title fw-bold text-truncate">
+                                {event.City || "Untitled"}
+                              </h5>
+                              <div className="d-flex text-muted" style={{ textTransform: "capitalize" }}>
+                                <p className="me-2">{event.States || "N/A"},</p>
+                                <p>{event.City || "N/A"}</p>
+                              </div>
+                              <p className="card-text text-muted text-truncate">
+                                {event.travelDescription || "No description available"}
+                              </p>
+                              <div className="d-flex justify-content-between">
+                                <p className="text-muted" style={{ fontSize: "0.9rem" }}>
+                                  By: {event.travelAuthor || "Unknown"}
+                                </p>
+                                <p className="text-muted" style={{ fontSize: "0.9rem" }}>
+                                  Date: {event.startDate ? new Date(event.startDate).toLocaleDateString() : "N/A"}
+                                </p>
+                              </div>
+                              {/* Display interested users */}
+                              <div className="mt-2">
+                                <p className="text-muted" style={{ fontSize: "0.9rem" }}>
+                                  Interested Users: {users.length > 0 ? users.map((user) => user.name).join(", ") : "None"}
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              className="btn btn-primary mt-3 w-100"
+                              onClick={() => navigate(`/events/${event._id}`)}
+                              aria-label={`Read more about ${event.City || "this event"}`}
+                            >
+                              Read More
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <h4 className="text-white mt-5 pt-5 text-center">No events found</h4>
+                )}
+              </div>
+
+              <div className="pagination-controls d-flex justify-content-center mt-4">
+                <button
+                  className="btn btn-secondary me-2"
+                  onClick={() => setPage((prev) => ({ ...prev, events: Math.max(prev.events - 1, 1) }))}
+                  disabled={page.events === 1}
+                  aria-label="Previous page"
+                >
+                  ◀
+                </button>
+                <span className="text-light align-self-center">
+                  Page {page.events} of {totalPages.events}
+                </span>
+                <button
+                  className="btn btn-secondary ms-2"
+                  onClick={() => setPage((prev) => ({ ...prev, events: Math.min(prev.events + 1, totalPages.events) }))}
+                  disabled={page.events === totalPages.events}
+                  aria-label="Next page"
+                >
+                  ▶
+                </button>
               </div>
             </>
           )}

@@ -14,6 +14,7 @@
   width: 100%;
   height: 400px; /* Reduced height for better proportion */
   overflow: hidden;
+  display: block;
 }
 
 .unique-featured-image {
@@ -23,16 +24,22 @@
 }
 
 /* Featured Title */
-.unique-top-news {
+/* .unique-top-news {
   position: absolute;
   bottom: -26px;
 
   left: 50%;
   color: white;
+} */
+
+.unique-top-news {
+  margin-top: -42px;
+  text-align: center;
 }
 
+
 .unique-featured-title {
-  font-size: 54px; /* Reduced font size for better fit */
+  font-size: 52px; /* Reduced font size for better fit */
   color: white;
   text-decoration: none;
   font-weight: bold;
