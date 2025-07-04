@@ -18,6 +18,7 @@ import {
 } from "react-share";
 import Header from "./Header";
 import logo from "../components/images/logo.png";
+import defaultAvatar from "./images/avtar.jpeg";
 import "./all.css";
 
 // Base URL for API
@@ -36,17 +37,18 @@ const AccountProfile = () => {
     budgetRange: "",
     foodPreference: "",
     hiking: "",
-    profileImage: "",
+    img: "", // Changed from profileImage to img to match backend field
     following: 0,
     followers: 0,
   });
   const [file, setFile] = useState(null);
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [updatingProfile, setUpdatingProfile] = useState(false);
   const [activeTab, setActiveTab] = useState("My Blogs");
   const [blogs, setBlogs] = useState([]);
   const [events, setEvents] = useState([]);
-  const [interestedUsers, setInterestedUsers] = useState({}); // New state for interested users
+  const [interestedUsers, setInterestedUsers] = useState({});
   const [totalPages, setTotalPages] = useState({ blogs: 1, events: 1 });
   const [page, setPage] = useState({ blogs: 1, events: 1 });
   const [currentImageIndex, setCurrentImageIndex] = useState({});
@@ -56,7 +58,10 @@ const AccountProfile = () => {
   // User data from localStorage
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
   const userid = userData?.user?._id || userData?._id || null;
-  const token = userData?.token; // Assuming token is stored in userData
+
+  console.log(userid, "userid");
+
+  const token = userData?.token;
 
   // File input handler
   const handleFileChange = (e) => setFile(e.target.files[0]);
@@ -87,7 +92,11 @@ const AccountProfile = () => {
           budgetRange: result.user.budgetRange || "",
           foodPreference: result.user.foodPreference || "",
           hiking: result.user.hiking || "",
-          img: result.user.img || "",
+          img: typeof result.user.img === "string"
+            ? result.user.img
+            : (Array.isArray(result.user.img) && result.user.img.length > 0
+                ? result.user.img[0]
+                : ""),
           following: result.user.following || 0,
           followers: result.user.followers || 0,
         });
@@ -110,7 +119,7 @@ const AccountProfile = () => {
     }
     setLoading(true);
     try {
-      const query = new URLSearchParams({
+      const query = ({
         page: page.blogs,
         limit: 9,
         userid,
@@ -138,6 +147,8 @@ const AccountProfile = () => {
     }
   }, [userid, page.blogs, token]);
 
+  console.log(blogs, "dsfg");
+
   // Fetch user events with pagination
   const fetchEvents = useCallback(async () => {
     if (!userid) {
@@ -146,7 +157,7 @@ const AccountProfile = () => {
     }
     setLoading(true);
     try {
-      const query = new URLSearchParams({
+      const query = ({
         page: page.events,
         limit: 9,
         userid,
@@ -159,7 +170,6 @@ const AccountProfile = () => {
       if (result.travel && Array.isArray(result.travel)) {
         setEvents(result.travel);
         setTotalPages((prev) => ({ ...prev, events: result.totalPages || 1 }));
-        // Fetch interested users for each event
         result.travel.forEach((event) => {
           fetchInterestedUsers(event._id);
         });
@@ -181,8 +191,12 @@ const AccountProfile = () => {
   // Fetch interested users for a specific event
   const fetchInterestedUsers = useCallback(
     async (eventId) => {
-      if (!token) {
-        toast.error("Please log in to view interested users");
+      if (!userid || !token) {
+        console.warn("No user ID or token available, skipping fetchInterestedUsers");
+        setInterestedUsers((prev) => ({
+          ...prev,
+          [eventId]: [],
+        }));
         return;
       }
       try {
@@ -193,7 +207,14 @@ const AccountProfile = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        if (!response.ok) {
+          if (response.status === 401) {
+            toast.error("Session expired. Please log in again.");
+            navigate("/login");
+            return;
+          }
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
         const result = await response.json();
         if (result.interestedUsers && Array.isArray(result.interestedUsers)) {
           setInterestedUsers((prev) => ({
@@ -205,18 +226,16 @@ const AccountProfile = () => {
             ...prev,
             [eventId]: [],
           }));
-          toast.error(result.message || "No interested users found");
         }
       } catch (error) {
         console.error("Fetch Interested Users Error:", error.message);
-        toast.error(`Error fetching interested users: ${error.message}`);
         setInterestedUsers((prev) => ({
           ...prev,
           [eventId]: [],
         }));
       }
     },
-    [token]
+    [userid, token, navigate]
   );
 
   // Handle like/unlike blog
@@ -296,32 +315,39 @@ const AccountProfile = () => {
       toast.error("Please log in to update profile");
       return;
     }
-    setLoading(true);
+    setUpdatingProfile(true);
     try {
       const formDataToSend = new FormData();
-      formDataToSend.append("email", formData.email);
-      formDataToSend.append("name", formData.name);
-      if (file) formDataToSend.append("img", file);
-      formDataToSend.append("textarea", formData.textarea);
-      formDataToSend.append("committingName", formData.committingName);
-      formDataToSend.append("country", formData.country);
-      formDataToSend.append("city", formData.city);
-      formDataToSend.append("travelStyle", formData.travelStyle);
-      formDataToSend.append("budgetRange", formData.budgetRange);
-      formDataToSend.append("foodPreference", formData.foodPreference);
-      formDataToSend.append("hiking", formData.hiking);
+      if (formData.email) formDataToSend.append("email", formData.email);
+      if (formData.name) formDataToSend.append("name", formData.name);
+      if (formData.textarea) formDataToSend.append("textarea", formData.textarea);
+      if (formData.committingName) formDataToSend.append("committingName", formData.committingName);
+      if (formData.country) formDataToSend.append("country", formData.country);
+      if (formData.city) formDataToSend.append("city", formData.city);
+      if (formData.travelStyle) formDataToSend.append("travelStyle", Array.isArray(formData.travelStyle) ? formData.travelStyle[0] : formData.travelStyle);
+      if (formData.budgetRange) formDataToSend.append("budgetRange", Array.isArray(formData.budgetRange) ? formData.budgetRange[0] : formData.budgetRange);
+      if (formData.foodPreference) formDataToSend.append("foodPreference", Array.isArray(formData.foodPreference) ? formData.foodPreference[0] : formData.foodPreference);
+      if (formData.hiking) formDataToSend.append("hiking", formData.hiking);
+      // Append the image only if a new file is selected
+      if (file) {
+        formDataToSend.append("img", file);
+      }
 
       const response = await fetch(`${API_BASE_URL}/api/auth/update/${userid}`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
         body: formDataToSend,
       });
-
       const result = await response.json();
       if (response.ok) {
         toast.success(result?.message || "Profile updated successfully");
-        localStorage.setItem("userData", JSON.stringify(result.user));
-        await fetchUserData();
+        // Only update the user part in localStorage, preserving token and other info
+        const prevUserData = JSON.parse(localStorage.getItem("userData") || "{}") || {};
+        localStorage.setItem(
+          "userData",
+          JSON.stringify({ ...prevUserData, user: result.user })
+        );
+        await fetchUserData(); // Refresh UI with new data
         setFile(null);
       } else {
         toast.error(result?.message || "Failed to update profile");
@@ -330,21 +356,9 @@ const AccountProfile = () => {
       console.error("Error updating profile:", error.message);
       toast.error(`Error updating profile: ${error.message}`);
     } finally {
-      setLoading(false);
+      setUpdatingProfile(false);
     }
   };
-
-  // Loading spinner
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="spinner-wrapper">
-          <div className="spinner"></div>
-          <img src={logo} alt="Loading" className="spinner-logo" />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -363,16 +377,9 @@ const AccountProfile = () => {
         <div className="profile-card">
           <div className="profile-header">
             <img
-              src={
-                formData.img
-                  ? `${API_BASE_URL}/${formData.img}`
-                  : "https://via.placeholder.com/80?text=Avatar"
-              }
+              src={formData.img ? `${API_BASE_URL}/${formData.img}` : defaultAvatar}
               alt="Profile"
               className="profile-image"
-              onError={(e) => {
-                e.target.src = "https://via.placeholder.com/80?text=Avatar";
-              }}
             />
             <div className="profile-info">
               <h2 className="profile-name">{formData.name || "Guest User"}</h2>
@@ -456,7 +463,6 @@ const AccountProfile = () => {
                               alt={`Image ${currentImageIndex[blog._id] + 1 || 1}`}
                               className="card-img-top rounded-top-4"
                               style={{ height: "250px", objectFit: "cover" }}
-                              onError={(e) => (e.target.src = "/placeholder-image.jpg")}
                             />
                             {blog.img?.length > 1 && (
                               <>
@@ -489,9 +495,9 @@ const AccountProfile = () => {
                                   aria-label={blog.likes?.includes(userid) ? "Unlike blog" : "Like blog"}
                                 >
                                   {blog.likes?.includes(userid) ? (
-                                    <FaHeart color="red" size={20} />
+                                    <FaHeart style={{ color: "red", fontSize: "20px" }} />
                                   ) : (
-                                    <CiHeart size={20} />
+                                    <CiHeart style={{ fontSize: "20px" }} />
                                   )}
                                 </button>
                                 <span className="ms-2 text-muted">{blog.likes?.length || 0} Likes</span>
@@ -626,7 +632,6 @@ const AccountProfile = () => {
                               alt={`Image ${currentImageIndex[event._id] + 1 || 1}`}
                               className="card-img-top rounded-top-4"
                               style={{ height: "250px", objectFit: "cover" }}
-                              onError={(e) => (e.target.src = "/placeholder-image.jpg")}
                             />
                             {event.img?.length > 1 && (
                               <>
@@ -721,7 +726,6 @@ const AccountProfile = () => {
                                   Date: {event.startDate ? new Date(event.startDate).toLocaleDateString() : "N/A"}
                                 </p>
                               </div>
-                              {/* Display interested users */}
                               <div className="mt-2">
                                 <p className="text-muted" style={{ fontSize: "0.9rem" }}>
                                   Interested Users: {users.length > 0 ? users.map((user) => user.name).join(", ") : "None"}
@@ -792,17 +796,18 @@ const AccountProfile = () => {
               </div>
               <div className="settings-form">
                 <div className="input-group">
-                  <label htmlFor="profileImage">Profile Image</label>
+                  <label htmlFor="profileImage" style={{ color: 'white' }}>Profile Image</label>
                   <input
                     type="file"
                     className="input-field p-2"
                     id="profileImage"
                     onChange={handleFileChange}
                     accept="image/*"
+                    style={{ backgroundColor: "black", color: "white" }}
                   />
                 </div>
                 <div className="input-group">
-                  <label htmlFor="name">Name</label>
+                  <label htmlFor="name" style={{ color: 'white' }}>Name</label>
                   <input
                     type="text"
                     className="input-field p-2"
@@ -812,10 +817,11 @@ const AccountProfile = () => {
                     name="name"
                     placeholder="Enter your name"
                     aria-label="Name"
+                    style={{ backgroundColor: "black", color: "white" }}
                   />
                 </div>
                 <div className="input-group">
-                  <label htmlFor="email">Email</label>
+                  <label htmlFor="email" style={{ color: 'white' }}>Email</label>
                   <input
                     type="email"
                     className="input-field p-2"
@@ -823,10 +829,11 @@ const AccountProfile = () => {
                     value={formData.email}
                     readOnly
                     aria-label="Email (read-only)"
+                    style={{ backgroundColor: "black", color: "white" }}
                   />
                 </div>
                 <div className="input-group">
-                  <label htmlFor="committingName">Commenting Name</label>
+                  <label htmlFor="committingName" style={{ color: 'white' }}>Commenting Name</label>
                   <input
                     type="text"
                     className="input-field p-2"
@@ -836,10 +843,11 @@ const AccountProfile = () => {
                     name="committingName"
                     placeholder="Enter your commenting name"
                     aria-label="Commenting name"
+                    style={{ backgroundColor: "black", color: "white" }}
                   />
                 </div>
                 <div className="input-group">
-                  <label htmlFor="country">Country</label>
+                  <label htmlFor="country" style={{ color: 'white' }}>Country</label>
                   <select
                     className="custom-select"
                     id="country"
@@ -847,6 +855,7 @@ const AccountProfile = () => {
                     onChange={handleChange}
                     name="country"
                     aria-label="Select country"
+                    style={{ backgroundColor: "black", color: "white" }}
                   >
                     <option value="" disabled>
                       Select Country
@@ -859,7 +868,7 @@ const AccountProfile = () => {
                   </select>
                 </div>
                 <div className="input-group">
-                  <label htmlFor="city">City</label>
+                  <label htmlFor="city" style={{ color: 'white' }}>City</label>
                   <select
                     className="custom-select"
                     id="city"
@@ -868,6 +877,7 @@ const AccountProfile = () => {
                     name="city"
                     disabled={!formData.country}
                     aria-label="Select city"
+                    style={{ backgroundColor: "black", color: "white" }}
                   >
                     <option value="" disabled>
                       Select City
@@ -880,7 +890,7 @@ const AccountProfile = () => {
                   </select>
                 </div>
                 <div className="input-group">
-                  <label htmlFor="travelStyle">Travel Style</label>
+                  <label htmlFor="travelStyle" style={{ color: 'white' }}>Travel Style</label>
                   <select
                     className="custom-select"
                     id="travelStyle"
@@ -888,6 +898,7 @@ const AccountProfile = () => {
                     onChange={handleChange}
                     name="travelStyle"
                     aria-label="Select travel style"
+                    style={{ backgroundColor: "black", color: "white" }}
                   >
                     <option value="" disabled>
                       Select Travel Style
@@ -899,7 +910,7 @@ const AccountProfile = () => {
                   </select>
                 </div>
                 <div className="input-group">
-                  <label htmlFor="budgetRange">Budget Range</label>
+                  <label htmlFor="budgetRange" style={{ color: 'white' }}>Budget Range</label>
                   <select
                     className="custom-select"
                     id="budgetRange"
@@ -907,6 +918,7 @@ const AccountProfile = () => {
                     onChange={handleChange}
                     name="budgetRange"
                     aria-label="Select budget range"
+                    style={{ backgroundColor: "black", color: "white" }}
                   >
                     <option value="" disabled>
                       Select Budget Range
@@ -917,7 +929,7 @@ const AccountProfile = () => {
                   </select>
                 </div>
                 <div className="input-group">
-                  <label htmlFor="foodPreference">Food Preference</label>
+                  <label htmlFor="foodPreference" style={{ color: 'white' }}>Food Preference</label>
                   <select
                     className="custom-select"
                     id="foodPreference"
@@ -925,6 +937,7 @@ const AccountProfile = () => {
                     onChange={handleChange}
                     name="foodPreference"
                     aria-label="Select food preference"
+                    style={{ backgroundColor: "black", color: "white" }}
                   >
                     <option value="" disabled>
                       Select Food Preference
@@ -935,7 +948,7 @@ const AccountProfile = () => {
                   </select>
                 </div>
                 <div className="input-group">
-                  <label htmlFor="hiking">Activity Interests</label>
+                  <label htmlFor="hiking" style={{ color: 'white' }}>Activity Interests</label>
                   <select
                     className="custom-select"
                     id="hiking"
@@ -943,6 +956,7 @@ const AccountProfile = () => {
                     onChange={handleChange}
                     name="hiking"
                     aria-label="Select activity interest"
+                    style={{ backgroundColor: "black", color: "white" }}
                   >
                     <option value="" disabled>
                       Select Activity
@@ -953,7 +967,7 @@ const AccountProfile = () => {
                   </select>
                 </div>
                 <div className="input-group">
-                  <label htmlFor="textarea">Bio</label>
+                  <label htmlFor="textarea" style={{ color: 'white' }}>Bio</label>
                   <textarea
                     className="input-field"
                     id="textarea"
@@ -963,15 +977,16 @@ const AccountProfile = () => {
                     placeholder="Tell us about yourself"
                     rows={4}
                     aria-label="Bio"
+                    style={{ backgroundColor: "black", color: "white" }}
                   />
                 </div>
                 <Button
                   variant="primary"
                   onClick={updateProfile}
-                  disabled={loading}
-                  aria-label={loading ? "Updating profile" : "Update profile"}
+                  disabled={updatingProfile}
+                  aria-label={updatingProfile ? "Updating profile" : "Update profile"}
                 >
-                  {loading ? "Updating..." : "Update Profile"}
+                  {updatingProfile ? "Updating..." : "Update Profile"}
                 </Button>
               </div>
             </>

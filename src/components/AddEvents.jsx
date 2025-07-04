@@ -5,11 +5,11 @@ import "react-toastify/dist/ReactToastify.css";
 import Select from "react-select";
 import { State, City } from "country-state-city";
 import "./AddEvents.css";
+import { Toast } from "react-bootstrap";
 
 const AddEvents = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setuser] = useState();
   const [formData, setFormData] = useState({
     destination: "",
     travelBuddyAge: "",
@@ -28,15 +28,15 @@ const AddEvents = () => {
   });
 
   useEffect(() => {
-    const userInfo = localStorage.getItem("userData");
-    const userData = userInfo ? JSON.parse(userInfo) : null;
-    console.log(userData.name, "userData");
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    const userid = userData?.user?._id || userData?._id || null;
+    console.log(userData?.user?.name || "", "");
 
-    if (userData && userData._id) {
+    if (userid) {
       setFormData((prev) => ({
         ...prev,
-        creator: userData._id,
-        travelAuthor: userData.name,
+        creator: userid,
+        travelAuthor: userData?.user?.name || userData?.name || "",
       }));
     } else {
       toast.error("User not logged in. Please log in to create an event.");
@@ -117,6 +117,19 @@ const AddEvents = () => {
   };
 
   const addEvent = async () => {
+    // Retrieve userData from localStorage
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    const token = localStorage.getItem("token") 
+
+    if (!token) {
+      toast.error("No authentication token found. Please log in again.");
+      navigate("/login");
+      return;
+    }
+
+    const myHeaders = new Headers();
+    myHeaders.append("Authorization", `Bearer ${token}`); 
+
     if (!validateForm()) return;
     setIsLoading(true);
 
@@ -143,6 +156,7 @@ const AddEvents = () => {
         "http://82.29.166.100:4000/api/auth/addEvents",
         {
           method: "POST",
+          headers: myHeaders,
           body: formdata,
         }
       );
@@ -151,6 +165,10 @@ const AddEvents = () => {
 
       if (response.ok) {
         console.log("Event added successfully, showing toast");
+             toast.success("Event added successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
         localStorage.setItem("eventId", JSON.stringify(result.data._id));
         if (result.user) {
           localStorage.setItem("userData", JSON.stringify(result.user));
@@ -192,7 +210,7 @@ const AddEvents = () => {
 
   return (
     <div className="container event-container">
-      <ToastContainer
+      <Toast ediblesContainer
         position="top-right"
         autoClose={3000}
         hideProgressBar={false}
@@ -238,7 +256,6 @@ const AddEvents = () => {
           value={formData.travelAuthor}
           onChange={handleChange}
           className="input-field"
-          readOnly
         />
       </div>
 
