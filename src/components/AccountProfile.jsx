@@ -66,6 +66,56 @@ const AccountProfile = () => {
   // File input handler
   const handleFileChange = (e) => setFile(e.target.files[0]);
 
+  // Fetch interested users for a specific event
+  const fetchInterestedUsers = useCallback(
+    async (eventId) => {
+      if (!userid || !token) {
+        console.warn("No user ID or token available, skipping fetchInterestedUsers");
+        setInterestedUsers((prev) => ({
+          ...prev,
+          [eventId]: [],
+        }));
+        return;
+      }
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/interested-users/${eventId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          if (response.status === 401) {
+            toast.error("Session expired. Please log in again.");
+            navigate("/login");
+            return;
+          }
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const result = await response.json();
+        if (result.interestedUsers && Array.isArray(result.interestedUsers)) {
+          setInterestedUsers((prev) => ({
+            ...prev,
+            [eventId]: result.interestedUsers,
+          }));
+        } else {
+          setInterestedUsers((prev) => ({
+            ...prev,
+            [eventId]: [],
+          }));
+        }
+      } catch (error) {
+        console.error("Fetch Interested Users Error:", error.message);
+        setInterestedUsers((prev) => ({
+          ...prev,
+          [eventId]: [],
+        }));
+      }
+    },
+    [userid, token, navigate]
+  );
+
   // Fetch user data from API
   const fetchUserData = useCallback(async () => {
     if (!userid) {
@@ -119,18 +169,17 @@ const AccountProfile = () => {
     }
     setLoading(true);
     try {
-      const query = ({
-        page: page.blogs,
-        limit: 9,
-        userid,
-      }).toString();
-      const response = await fetch(`${API_BASE_URL}/api/auth/getblogs?${query}`, {
+      // Correctly build query string for pagination and user filtering
+      const query = `?userid=${userid}&page=${page.blogs}&limit=9`;
+      const response = await fetch(`${API_BASE_URL}/api/auth/getblogs${query}`, {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       });
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       const result = await response.json();
       if (result.blogs && Array.isArray(result.blogs)) {
-        setBlogs(result.blogs);
+        // Filter blogs to ensure only current user's blogs are shown (safeguard)
+        const userBlogs = result.blogs.filter(blog => blog.userid === userid || blog.user === userid || blog.authorId === userid);
+        setBlogs(userBlogs);
         setTotalPages((prev) => ({ ...prev, blogs: result.totalPages || 1 }));
       } else {
         toast.error(result.message || "Failed to fetch blogs");
@@ -157,20 +206,19 @@ const AccountProfile = () => {
     }
     setLoading(true);
     try {
-      const query = ({
-        page: page.events,
-        limit: 9,
-        userid,
-      }).toString();
-      const response = await fetch(`${API_BASE_URL}/api/auth/getEvents?${query}`, {
+      // Correctly build query string for pagination and user filtering
+      const query = `?userid=${userid}&page=${page.events}&limit=9`;
+      const response = await fetch(`${API_BASE_URL}/api/auth/getEvents${query}`, {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       });
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       const result = await response.json();
       if (result.travel && Array.isArray(result.travel)) {
-        setEvents(result.travel);
+        // Filter events to ensure only current user's events are shown (safeguard)
+        const userEvents = result.travel.filter(event => event.userid === userid || event.user === userid || event.authorId === userid);
+        setEvents(userEvents);
         setTotalPages((prev) => ({ ...prev, events: result.totalPages || 1 }));
-        result.travel.forEach((event) => {
+        userEvents.forEach((event) => {
           fetchInterestedUsers(event._id);
         });
       } else {
@@ -186,57 +234,7 @@ const AccountProfile = () => {
     } finally {
       setLoading(false);
     }
-  }, [userid, page.events, token]);
-
-  // Fetch interested users for a specific event
-  const fetchInterestedUsers = useCallback(
-    async (eventId) => {
-      if (!userid || !token) {
-        console.warn("No user ID or token available, skipping fetchInterestedUsers");
-        setInterestedUsers((prev) => ({
-          ...prev,
-          [eventId]: [],
-        }));
-        return;
-      }
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/interested-users/${eventId}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!response.ok) {
-          if (response.status === 401) {
-            toast.error("Session expired. Please log in again.");
-            navigate("/login");
-            return;
-          }
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const result = await response.json();
-        if (result.interestedUsers && Array.isArray(result.interestedUsers)) {
-          setInterestedUsers((prev) => ({
-            ...prev,
-            [eventId]: result.interestedUsers,
-          }));
-        } else {
-          setInterestedUsers((prev) => ({
-            ...prev,
-            [eventId]: [],
-          }));
-        }
-      } catch (error) {
-        console.error("Fetch Interested Users Error:", error.message);
-        setInterestedUsers((prev) => ({
-          ...prev,
-          [eventId]: [],
-        }));
-      }
-    },
-    [userid, token, navigate]
-  );
+  }, [userid, page.events, token, fetchInterestedUsers]);
 
   // Handle like/unlike blog
   const handleLike = async (blogId) => {
@@ -372,7 +370,7 @@ const AccountProfile = () => {
       />
       <Header />
       <div className="profile-container">
-        <h1 className="account-title">Your Account</h1>
+        <h1 className="account-title text-white fw-bold">Your Account</h1>
 
         <div className="profile-card">
           <div className="profile-header">
@@ -391,11 +389,11 @@ const AccountProfile = () => {
                   <strong>{blogs.length}</strong> Blogs
                 </span>
                 <span>
-                  <strong>{formData.following}</strong> Following
+                  <strong>{events.length}</strong> Events
                 </span>
-                <span>
-                  <strong>{formData.followers}</strong> Followers
-                </span>
+                {/* <span>
+                  <strong>{interestedUsers.length}</strong> Interests
+                </span> */}
               </div>
               <p className="profile-bio">{formData.textarea || "No bio available."}</p>
             </div>

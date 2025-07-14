@@ -8,6 +8,11 @@ import "react-toastify/dist/ReactToastify.css";
 import JoditEditor from "jodit-react";
 import Header from "../src/components/Header";
 
+// Get user token and id from localStorage
+const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+const token = userData?.token;
+const userid = userData?.user?._id || userData?._id || null;
+
 const AllBlogs = () => {
   const [content, setContent] = useState("");
   const [blogs, setBlogs] = useState([]);
@@ -64,6 +69,7 @@ const AllBlogs = () => {
         `http://82.29.166.100:4000/api/auth/updateBlog/${selectedBlog._id}`,
         {
           method: "PUT",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
           body: formData,
         }
       );
@@ -83,12 +89,19 @@ const AllBlogs = () => {
   };
 
   const blogsApi = async () => {
+    console.log("Fetching blogs..."); // Debug: log when API is called
     try {
       const response = await fetch(
-        "http://82.29.166.100:4000/api/auth/getblogs"
+        "http://82.29.166.100:4000/api/auth/getblogs",
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }
       );
       const result = await response.json();
-      setBlogs(result?.blogs || []);
+      console.log("API blogs:", result.blogs, "Current userid:", userid);
+      // Filter blogs to only current user's blogs if logged in
+    
+      setBlogs(result.blogs);
     } catch (error) {
       console.error("API Error:", error);
       toast.error("Failed to fetch blogs!");
@@ -104,6 +117,7 @@ const AllBlogs = () => {
         {
           method: "DELETE",
           redirect: "follow",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         }
       );
 
@@ -122,6 +136,7 @@ const AllBlogs = () => {
   };
 
   useEffect(() => {
+    console.log("AllBlogs mounted"); // Debug: log when component mounts
     blogsApi();
   }, []);
 
@@ -163,6 +178,7 @@ const AllBlogs = () => {
                                 alt={blog.title}
                                 style={{ width: "50px", objectFit: "cover" }}
                                 onError={(e) => {
+                                  // Make sure fallback image exists in public directory
                                   e.target.src = "/fallback-image.jpg"; // Fallback image
                                 }}
                               />
