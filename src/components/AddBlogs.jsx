@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import "./AddBlogs.css";
 import JoditEditor from "jodit-react";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -21,6 +21,14 @@ const AddBlogs = () => {
   const fileInputRef = useRef(null);
   const editor = useRef(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    if (!userData){
+      alert("login please");
+      navigate("/");
+    }
+  }, );
 
   // State and City options for India
   const states = State.getStatesOfCountry("IN").map((state) => ({

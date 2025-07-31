@@ -442,11 +442,13 @@ const AccountProfile = () => {
           {activeTab === "My Blogs" && (
             <>
               <h3>My Blogs</h3>
-              <NavLink to="/add/blogs">
-                <button className="create-blog-btn" aria-label="Create new blog">
-                  + Create New Blog
-                </button>
-              </NavLink>
+             
+                <NavLink to="/add/blogs">
+                  <button className="create-blog-btn" aria-label="Create new blog">
+                    + Create New Blog
+                  </button>
+                </NavLink>
+            
 
               <div className="row g-4">
                 {blogs.length > 0 ? (

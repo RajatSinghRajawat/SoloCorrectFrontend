@@ -128,6 +128,8 @@ const Tech = () => {
     setPage(1); // Reset page when filters change
   }, [myState, searchTitle]);
 
+
+
   useEffect(() => {
     fetchBlogs();
   }, [page, myState, searchTitle]);
@@ -293,9 +295,10 @@ const Tech = () => {
               }}
             />
 
-            <NavLink to="/add/blogs">
-              <button className="btn btn-warning">✍️ Create Blog</button>
-            </NavLink>
+              <NavLink to="/add/blogs">
+                <button className="btn btn-warning">✍️ Create Blog</button>
+              </NavLink>
+         
           </div>
         </div>
 

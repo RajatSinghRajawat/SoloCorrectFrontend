@@ -39,13 +39,11 @@ const Wonderlust = () => {
 
   const cheack = () => {
     const a = JSON.parse(localStorage.getItem("userData"));
-    const getEmail = a.email;
-    const adminEmail = admin.admin[0].email;
-    setState(getEmail == adminEmail);
-    if (checkState) {
+    const userRole = a.role;
+    if (userRole === "admin") {
       navigate("/add/blogs");
     } else {
-      alert("you are not admin");
+      alert("You are not authorized to create blogs. Only admin can create blogs.");
     }
   };
 
@@ -114,7 +112,7 @@ const Wonderlust = () => {
         {/* Header Section */}
         <header className="wander-header">
           <div className="wander-logo">
-            <span className="wander-icon">🌍</span> WANDERLIST
+            <span className="wander-icon">🌍</span> WANDERLUST
           </div>
           {/* <button className="wander-add-place-btn">+ Add Place</button>
           <div className="wander-profile-pic"></div> */}
@@ -235,18 +233,14 @@ const Wonderlust = () => {
                 }}
               />
 
-              {/* Conditionally render the Create Blog button for admins */}
-              {/* {myState?.role === "admin" && (
+              {/* Conditionally render the Create Blog button for admin and superadmin only */}
+              {(myState?.role === "admin" || myState?.role === "superadmin") && (
                 <NavLink to="/add/blogs">
-                  <button className="btn btn-warning">✍️ Create Blog</button>
+                  <button onClick={cheack} className="wander-filter-btn">
+                    ✍️ Create Blog
+                  </button>
                 </NavLink>
-              )} */}
-
-              <NavLink to="/add/blogs">
-                <button onClick={cheack} className="wander-filter-btn">
-                  ✍️ Create Blog
-                </button>
-              </NavLink>
+              )}
             </div>
           </div>
         </main>
